@@ -1,7 +1,7 @@
 #define _GNU_SOURCE
 #include <unistd.h>
-#include "timer.h"
-#include "display.h"
+#include "../include/timer.h"
+#include "../include/display.h"
 
 int main() {
     Timer* t = ptimer_create(1, MODE_COUNTDOWN);

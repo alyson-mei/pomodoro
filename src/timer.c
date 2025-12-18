@@ -3,7 +3,7 @@
 #include <stdlib.h>
 #include <stdint.h>
 #include <stdbool.h>
-#include "timer.h"
+#include "../include/timer.h"
 
 struct Timer {
     int64_t started_at_ms;

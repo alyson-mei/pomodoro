@@ -1,6 +1,6 @@
 #include <unistd.h>
 #include <stdio.h>
-#include "timer.h"
+#include "../include/timer.h"
 
 void display_render(const Timer *t) {
     TimeDisplay td = get_time_display(t);
