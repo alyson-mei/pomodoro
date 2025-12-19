@@ -7,4 +7,6 @@
 
 void display_render(const Timer *t);
 
+void pomodoro_render(const Timer *t);
+
 #endif

@@ -1,10 +1,25 @@
 #ifndef TIMER_H
 #define TIMER_H
 
+#define BUF_SIZE 256 //TODO: replace to common header
+
 #include <stdint.h>
 #include <stdbool.h>
 
-typedef struct Timer Timer;
+typedef enum {
+    MODE_COUNTDOWN,
+    MODE_STOPWATCH
+} TimerMode;
+
+typedef struct {
+    int64_t started_at_ms;
+    int64_t target_ms;
+    int64_t accumulated_ms;
+    TimerMode mode;
+    bool is_paused;
+    char category[64];
+    char subcategory[64];
+} Timer;
 
 typedef struct {
     int minutes;
@@ -12,13 +27,11 @@ typedef struct {
     int milliseconds; //TODO: consider changing to centiseconds
 } TimeDisplay;
 
-typedef enum {
-    MODE_COUNTDOWN,
-    MODE_STOPWATCH
-} TimerMode;
+int64_t get_current_ms(void);
+int64_t ptimer_elapsed_ms(const Timer *t);
 
 TimeDisplay get_time_display(const Timer *timer);
-Timer* ptimer_create(int minutes, TimerMode mode);
+Timer* ptimer_create(int minutes, TimerMode mode, const char *category, const char *subcategory);
 void ptimer_start(Timer *t);
 void ptimer_pause(Timer *t);
 void ptimer_resume(Timer *t);

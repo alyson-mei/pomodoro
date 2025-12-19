@@ -1,17 +1,13 @@
 #define _GNU_SOURCE
+
 #include <time.h>
 #include <stdlib.h>
+#include<string.h>
+
 #include <stdint.h>
 #include <stdbool.h>
-#include "../include/timer.h"
 
-struct Timer {
-    int64_t started_at_ms;
-    int64_t target_ms;
-    int64_t accumulated_ms;
-    TimerMode mode;
-    bool is_paused;
-};
+#include "../include/timer.h"
 
 int64_t get_current_ms() {
     struct timespec ts;
@@ -44,14 +40,37 @@ TimeDisplay get_time_display(const Timer *timer) {
     return td;
 }
 
-Timer* ptimer_create(int minutes, TimerMode mode) {
+Timer* ptimer_create(
+    int minutes,
+    TimerMode mode, 
+    const char *category,
+    const char *subcategory
+) {
     Timer *t = malloc(sizeof(Timer)); 
+    if (!t) return NULL;
+
     t->started_at_ms = 0;
     t->target_ms = minutes * 60 * 1000;
     t->accumulated_ms = 0;
     t->mode = mode;
     t->is_paused = false;
+    
+    strncpy(t->category, category, sizeof t->category - 1);
+    t->category[sizeof t->category - 1] = '\0';
+    strncpy(t->subcategory, subcategory, sizeof t->subcategory - 1);
+    t->subcategory[sizeof t->subcategory - 1] = '\0';
+
     return t;
+}
+
+int64_t ptimer_elapsed_ms(const Timer *t) {
+    int64_t elapsed = t->accumulated_ms;
+
+    if (!t->is_paused && t->started_at_ms > 0) {
+        elapsed += get_current_ms() - t->started_at_ms;
+    }
+
+    return elapsed;
 }
 
 void ptimer_start(Timer *t) {
