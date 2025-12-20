@@ -22,9 +22,20 @@ void print_gradient(const char *s,
     printf(CLR_RESET "\n");
 }
 
-int main() {
-    print_gradient("GRADIENT TEXT",
-                   255, 0, 0,     // red
-                   0, 120, 255);  // blue
+// int main() {
+//     print_gradient("GRADIENT TEXT",
+//                    255, 0, 0,     // red
+//                    0, 120, 255);  // blue
+//     return 0;
+// }
+
+#include <stdio.h>
+
+int main(void) {
+    printf("\033[41m");          // red background
+    printf("Hello, world!");
+    printf("\033[0m\n");         // reset colors
+
     return 0;
 }
+
