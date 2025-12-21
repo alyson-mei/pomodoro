@@ -8,8 +8,8 @@
 int main(void) {
     setvbuf(stdout, NULL, _IONBF, 0);
 
-    char category[] = "category";
-    char subcategory[] = "subcategory";
+    char category[] = "Coding";
+    char subcategory[] = "Building a pomodoro app";
 
     Timer* t = ptimer_create(
         1,
