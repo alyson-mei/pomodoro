@@ -23,23 +23,44 @@ typedef struct {
 typedef struct 
 {
     int width;
-    const char *header;
-    //const char *time;
     const char *controls;
     const BoxBorders *borders;
     Timer *timer;
 } TimerScreenState;
 
+typedef struct
+{
+    char header[64];
+    char time_str[16];
+    char progress_bar[128];
+    char category_str[64];
+} TimerScreenView;
 
+// Helper functions
 
+int calculate_progress(const Timer *t) {
+    if (!t || t->target_ms <= 0)
+        return 100;
 
-static char* append_repeat(char *buf, const char *ch, int count) {
+    int64_t elapsed = ptimer_elapsed_ms(t);
+
+    if (elapsed <= 0)
+        return 0;
+    if (elapsed >= t->target_ms)
+        return 100;
+
+    return (int)((elapsed * 100) / t->target_ms);
+}
+
+static char* repeat_string(char *buf, const char *ch, int count) {
     for (int i = 0; i < count; i++) {
         strcpy(buf, ch);
         buf += strlen(ch); 
     }
     return buf;
 }
+
+// Writing values to buffer
 
 void progress_bar_to_buf(
     char *buf,
@@ -78,21 +99,8 @@ void progress_bar_to_buf(
     
 }
 
-int calculate_progress(const Timer *t) {
-    if (!t || t->target_ms <= 0)
-        return 100;
 
-    int64_t elapsed = ptimer_elapsed_ms(t);
-
-    if (elapsed <= 0)
-        return 0;
-    if (elapsed >= t->target_ms)
-        return 100;
-
-    return (int)((elapsed * 100) / t->target_ms);
-}
-
-void box_format_line(char *buf, const char *str, const Border *border, int width) {
+void box_line_to_buf(char *buf, const char *str, const Border *border, int width) {
     char *p = buf;
     int slen = strlen(str);
 
@@ -100,17 +108,42 @@ void box_format_line(char *buf, const char *str, const Border *border, int width
     int left_pad  = total_pad / 2;
     int right_pad = total_pad - left_pad;
 
-    p = append_repeat(p, border->left_char, 1);
-    p = append_repeat(p, border->mid_char, left_pad);
+    p = repeat_string(p, border->left_char, 1);
+    p = repeat_string(p, border->mid_char, left_pad);
 
     memcpy(p, str, slen);
     p += slen;
 
-    p = append_repeat(p, border->mid_char, right_pad);
-    p = append_repeat(p, border->right_char, 1);
+    p = repeat_string(p, border->mid_char, right_pad);
+    p = repeat_string(p, border->right_char, 1);
 
     *p = '\0';
 }
+
+// Building a view
+
+void timer_screen_build_view(TimerScreenState *state, TimerScreenView *view) {
+    if (state->timer->mode == MODE_COUNTDOWN) {
+        strcpy(view->header, "POMODORO TIMER");
+    }
+    else {
+        strcpy(view->header, "STOPWATCH TIMER");
+    }
+    
+    TimeDisplay td = get_time_display(state->timer);
+    snprintf(view->time_str, sizeof view->time_str,
+             "%02d:%02d:%02d", td.minutes, td.seconds, td.milliseconds / 10);
+
+    int percent = calculate_progress(state->timer);
+    progress_bar_to_buf(view->progress_bar, sizeof view->progress_bar,
+                            percent, state->width / 2);
+
+    snprintf(view->category_str, sizeof view->category_str,
+            "%s -> %s", state->timer->category, state->timer->subcategory);
+
+}
+
+// Rendering 
 
 void box_render_line(
     char *buf,
@@ -118,62 +151,34 @@ void box_render_line(
     const Border *border,
     int width
 ) {
-    box_format_line(buf, str, border, width);
+    box_line_to_buf(buf, str, border, width);
     printf("%s\n", buf);
 }
 
-void timer_screen_render(TimerScreenState *screenState) {
-    char buf[128];
-    char time_buf[16];
-    char category_buf[64];    
-    int w = screenState->width;
-
-    snprintf(
-        category_buf,
-        sizeof category_buf,
-        "%s -> %s",
-        screenState->timer->category,
-        screenState->timer->subcategory
-    );
-
-    TimeDisplay timeDisplay = get_time_display(screenState->timer);
-    snprintf(
-        time_buf,
-        sizeof time_buf,
-        "%02d:%02d:%02d",
-        timeDisplay.minutes,
-        timeDisplay.seconds,
-        timeDisplay.milliseconds / 10
-    );
-
-
-    char bar[128];
-
-    int percent = calculate_progress(screenState->timer);
-    progress_bar_to_buf(bar, sizeof bar, percent, w / 2);
-
+void timer_screen_render(TimerScreenState *state, TimerScreenView *view) {
+    char buf[256];
+    int w = state->width;
 
     // Header
-    box_render_line(buf, "", screenState->borders->top, w);
-    box_render_line(buf, screenState->header, screenState->borders->mid, w);
-    box_render_line(buf, "", screenState->borders->mid_bottom, w);
+    box_render_line(buf, "", state->borders->top, w);
+    box_render_line(buf, view->header, state->borders->mid, w);
+    box_render_line(buf, "", state->borders->mid_bottom, w);
 
     // Time
-    box_render_line(buf, "", screenState->borders->mid, w);
-    box_render_line(buf, time_buf, screenState->borders->mid, w);
-    box_render_line(buf, bar, screenState->borders->mid, w * 2);
-    box_render_line(buf, "", screenState->borders->mid, w);
+    box_render_line(buf, "", state->borders->mid, w);
+    box_render_line(buf, view->time_str, state->borders->mid, w);
+    box_render_line(buf, view->progress_bar, state->borders->mid, w * 2);
+    box_render_line(buf, "", state->borders->mid, w);
 
     // Category
-    box_render_line(buf, category_buf, screenState->borders->mid, w);
-    box_render_line(buf, "", screenState->borders->mid, w);
+    box_render_line(buf, view->category_str, state->borders->mid, w);
+    box_render_line(buf, "", state->borders->mid, w);
 
-    //Controls
-    box_render_line(buf, screenState->controls, screenState->borders->mid, w);
-    box_render_line(buf, "", screenState->borders->mid, w);
-    box_render_line(buf, "", screenState->borders->bottom, w);
+    // Controls
+    box_render_line(buf, state->controls, state->borders->mid, w);
+    box_render_line(buf, "", state->borders->mid, w);
+    box_render_line(buf, "", state->borders->bottom, w);
 }
-
 
 int main() {
     char buf[128];
@@ -202,11 +207,14 @@ int main() {
 
     TimerScreenState content = {
         .width = 40,
-        .header = "POMODORO TIMER",
         .controls = "[Space] Pause  [Q] Quit",
         .borders = &borders,
         .timer = &timer
     };
-    timer_screen_render(&content);
+
+    TimerScreenView view;
+
+    timer_screen_build_view(&content, &view);
+    timer_screen_render(&content, &view);
     return 0;
 }
