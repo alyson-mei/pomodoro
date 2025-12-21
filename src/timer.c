@@ -54,6 +54,7 @@ Timer* ptimer_create(
     t->accumulated_ms = 0;
     t->mode = mode;
     t->is_paused = false;
+    t->is_canceled = false;
     
     strncpy(t->category, category, sizeof t->category - 1);
     t->category[sizeof t->category - 1] = '\0';
@@ -87,6 +88,10 @@ void ptimer_pause(Timer *t) {
 void ptimer_resume(Timer *t) {
     t->started_at_ms = get_current_ms();
     t->is_paused = false;
+}
+
+void ptimer_cancel(Timer *t) {
+    t->is_canceled = true;
 }
 
 bool ptimer_finished(const Timer *t) {

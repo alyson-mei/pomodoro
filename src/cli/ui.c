@@ -35,6 +35,7 @@ typedef struct {
 
 typedef struct {
     int width;
+    int padding_header_vert;
     int padding_top;
     int padding_mid;
     int padding_midb;
@@ -50,8 +51,8 @@ typedef struct
     char time_str[16];
     char progress_bar[128];
     char category_str[64];
+    char controls[64];
     UiColor border_color;
-    const BoxBorders *borders;
 } TimerScreenView;
 
 
@@ -180,29 +181,25 @@ void timer_screen_build_view(TimerScreenState *state, TimerScreenView *view) {
     snprintf(view->category_str, sizeof view->category_str,
             "%s -> %s", state->timer->category, state->timer->subcategory);
 
-    if (state->timer->is_paused)
+    if (state->timer->is_canceled)
+        view->border_color = UI_COLOR_RED;
+    else if (state->timer->is_paused)
         view->border_color = UI_COLOR_YELLOW;
     else if (percent >= 100)
         view->border_color = UI_COLOR_GREEN;
-    else
-        view->border_color = UI_COLOR_CYAN;
-    
-    const char *cc = ui_color_code(view->border_color);
+    else 
+        view->border_color = UI_COLOR_CYAN;    
+        
+    if (state->timer->is_paused) {
+        sprintf(view->controls, "[Space] Resume  [Q] Quit");
+    }
+    else {
+        sprintf(view->controls, "[Space] Pause   [Q] Quit");
+    }
 
-    static const Border top_border     = {"╔", "═", "╗"};
-    static const Border mid_border     = {"║", " ", "║"};
-    static const Border midb_border    = {"╠", "═", "╣"};
-    static const Border bottom_border  = {"╚", "═", "╝"};
-
-    static const BoxBorders borders = {
-        .top        = &top_border,
-        .mid        = &mid_border,
-        .mid_bottom = &midb_border,
-        .bottom     = &bottom_border
-    };
-
-    view->borders = &borders;
-    
+    if (state->timer->is_canceled) {
+        sprintf(view->header, "CANCELLED");
+    }
 }
 
 // Rendering 
@@ -267,7 +264,13 @@ void timer_screen_render(TimerScreenState *state, TimerScreenView *view) {
 
     // Header
     box_render_line(buf, "", state->borders->top, w, view->border_color, 1);
+    for (int i = 0; i < state->padding_header_vert; i ++) {
+        box_render_line(buf, "", state->borders->mid, w, view->border_color, 0);
+    }
     box_render_line(buf, view->header, state->borders->mid, w, view->border_color, 0);
+    for (int i = 0; i < state->padding_header_vert; i ++) {
+        box_render_line(buf, "", state->borders->mid, w, view->border_color, 0);
+    }
     box_render_line(buf, "", state->borders->mid_bottom, w, view->border_color, 1);
 
     // Time
@@ -290,7 +293,7 @@ void timer_screen_render(TimerScreenState *state, TimerScreenView *view) {
     }
 
     // Controls
-    box_render_line(buf, state->controls, state->borders->mid, w, view->border_color, 0);
+    box_render_line(buf, view->controls, state->borders->mid, w, view->border_color, 0);
     
     for (int i = 0; i < state->padding_botttom; i ++) {
         box_render_line(buf, "", state->borders->mid, w, view->border_color, 0);
@@ -314,9 +317,10 @@ void pomodoro_render(const Timer *timer) {
 
     TimerScreenState content = {
         .width = 40,
-        .padding_top = 1,
+        .padding_header_vert = 1,
+        .padding_top = 3,
         .padding_mid = 1,
-        .padding_midb = 1,
+        .padding_midb = 3,
         .padding_botttom = 1,
         .controls = "[Space] Pause  [Q] Quit",
         .borders = &borders,

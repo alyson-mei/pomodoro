@@ -17,6 +17,7 @@ typedef struct {
     int64_t accumulated_ms;
     TimerMode mode;
     bool is_paused;
+    bool is_canceled;
     char category[BUF_SIZE];
     char subcategory[BUF_SIZE];
 } Timer;
