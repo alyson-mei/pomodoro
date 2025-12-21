@@ -18,19 +18,22 @@ typedef struct {
     const Border *mid;
     const Border *mid_bottom;
     const Border *bottom;
-} Borders;
+} BoxBorders;
 
 typedef struct 
 {
     int width;
     const char *header;
-    const char *time;
+    //const char *time;
     const char *controls;
-    const Borders *borders;
-   // Timer *timer;
+    const BoxBorders *borders;
+    Timer *timer;
 } TimerScreenState;
 
-static char* repeat_char(char *buf, const char *ch, int count) {
+
+
+
+static char* append_repeat(char *buf, const char *ch, int count) {
     for (int i = 0; i < count; i++) {
         strcpy(buf, ch);
         buf += strlen(ch); 
@@ -38,32 +41,58 @@ static char* repeat_char(char *buf, const char *ch, int count) {
     return buf;
 }
 
-// void draw_progress_bar(int percent, int width) {
-//     if (percent < 0) percent = 0;
-//     if (percent > 100) percent = 100;
+void progress_bar_to_buf(
+    char *buf,
+    size_t buf_size,
+    int percent,
+    int width
+) {
 
-//     int filled = (percent * width) / 100;
+    if (percent < 0) percent = 0;
+    if (percent > 100) percent = 100;
 
-//     for (int i = 0; i < width; ++i) {
-//         if (i < filled)
-//             printf("█");
-//         else
-//             printf("░");
-//     }
-// }
+    int filled = (percent * width) / 100;
 
-// int calculate_progress(const Timer *t) {
-//     if (t->target_ms <= 0) return 100;
+    char *p = buf;
+    memset(p, ' ', 5);
+    p += 5;
+    size_t remaining = buf_size - 1; // leave space for '\0'
 
-//     int64_t elapsed = ptimer_elapsed_ms(t);
+    for (int i = 0; i < width && remaining > 0; ++i) {
+        const char *ch = (i < filled) ? "█" : "░";
+        size_t len = strlen(ch);
 
-//     if (elapsed <= 0) return 0;
-//     if (elapsed >= t->target_ms) return 100;
+        if (len > remaining)
+            break;
 
-//     return (int)((elapsed * 100) / t->target_ms);
-// }
+        memcpy(p, ch, len);
+        p += len;
+        remaining -= len;
+    }
 
-void box_string(char *buf, const char *str, const Border *border, int width) {
+    *p = '\0';
+
+    char buf_percent[16];
+    snprintf(buf_percent, sizeof buf_percent, " %3d%%", percent);
+    strcat(p, buf_percent);
+    
+}
+
+int calculate_progress(const Timer *t) {
+    if (!t || t->target_ms <= 0)
+        return 100;
+
+    int64_t elapsed = ptimer_elapsed_ms(t);
+
+    if (elapsed <= 0)
+        return 0;
+    if (elapsed >= t->target_ms)
+        return 100;
+
+    return (int)((elapsed * 100) / t->target_ms);
+}
+
+void box_format_line(char *buf, const char *str, const Border *border, int width) {
     char *p = buf;
     int slen = strlen(str);
 
@@ -71,44 +100,78 @@ void box_string(char *buf, const char *str, const Border *border, int width) {
     int left_pad  = total_pad / 2;
     int right_pad = total_pad - left_pad;
 
-    p = repeat_char(p, border->left_char, 1);
-    p = repeat_char(p, border->mid_char, left_pad);
+    p = append_repeat(p, border->left_char, 1);
+    p = append_repeat(p, border->mid_char, left_pad);
 
     memcpy(p, str, slen);
     p += slen;
 
-    p = repeat_char(p, border->mid_char, right_pad);
-    p = repeat_char(p, border->right_char, 1);
+    p = append_repeat(p, border->mid_char, right_pad);
+    p = append_repeat(p, border->right_char, 1);
 
     *p = '\0';
 }
 
-
-void content_render(
+void box_render_line(
     char *buf,
     const char *str,
     const Border *border,
     int width
 ) {
-    box_string(buf, str, border, width);
+    box_format_line(buf, str, border, width);
     printf("%s\n", buf);
 }
 
-void box_render(TimerScreenState *screenState) {
+void timer_screen_render(TimerScreenState *screenState) {
     char buf[128];
+    char time_buf[16];
+    char category_buf[64];    
     int w = screenState->width;
 
-    content_render(buf, "", screenState->borders->top, w);
-    content_render(buf, screenState->header, screenState->borders->mid, w);
-    content_render(buf, "", screenState->borders->mid_bottom, w);
+    snprintf(
+        category_buf,
+        sizeof category_buf,
+        "%s -> %s",
+        screenState->timer->category,
+        screenState->timer->subcategory
+    );
 
-    content_render(buf, "", screenState->borders->mid, w);
-    content_render(buf, screenState->time, screenState->borders->mid, w);
-    content_render(buf, "", screenState->borders->mid, w);
+    TimeDisplay timeDisplay = get_time_display(screenState->timer);
+    snprintf(
+        time_buf,
+        sizeof time_buf,
+        "%02d:%02d:%02d",
+        timeDisplay.minutes,
+        timeDisplay.seconds,
+        timeDisplay.milliseconds / 10
+    );
 
-    content_render(buf, screenState->controls, screenState->borders->mid, w);
-    content_render(buf, "", screenState->borders->mid, w);
-    content_render(buf, "", screenState->borders->bottom, w);
+
+    char bar[128];
+
+    int percent = calculate_progress(screenState->timer);
+    progress_bar_to_buf(bar, sizeof bar, percent, w / 2);
+
+
+    // Header
+    box_render_line(buf, "", screenState->borders->top, w);
+    box_render_line(buf, screenState->header, screenState->borders->mid, w);
+    box_render_line(buf, "", screenState->borders->mid_bottom, w);
+
+    // Time
+    box_render_line(buf, "", screenState->borders->mid, w);
+    box_render_line(buf, time_buf, screenState->borders->mid, w);
+    box_render_line(buf, bar, screenState->borders->mid, w * 2);
+    box_render_line(buf, "", screenState->borders->mid, w);
+
+    // Category
+    box_render_line(buf, category_buf, screenState->borders->mid, w);
+    box_render_line(buf, "", screenState->borders->mid, w);
+
+    //Controls
+    box_render_line(buf, screenState->controls, screenState->borders->mid, w);
+    box_render_line(buf, "", screenState->borders->mid, w);
+    box_render_line(buf, "", screenState->borders->bottom, w);
 }
 
 
@@ -120,7 +183,7 @@ int main() {
     static const Border midb_border    = {"╠", "═", "╣"};
     static const Border bottom_border  = {"╚", "═", "╝"};
 
-    static const Borders borders = {
+    static const BoxBorders borders = {
         .top        = &top_border,
         .mid        = &mid_border,
         .mid_bottom = &midb_border,
@@ -129,9 +192,9 @@ int main() {
 
     Timer timer = {
         .accumulated_ms = 5000,
-        .started_at_ms = 2000,
-        .target_ms = 7000,
-        .mode = "countdown",
+        .started_at_ms = get_current_ms(),
+        .target_ms = 15000,
+        .mode = MODE_COUNTDOWN,
         .is_paused = false,
         .category = "cat",
         .subcategory = "subcat"
@@ -140,10 +203,10 @@ int main() {
     TimerScreenState content = {
         .width = 40,
         .header = "POMODORO TIMER",
-        .time = "10:20:30",
         .controls = "[Space] Pause  [Q] Quit",
-        .borders = &borders
+        .borders = &borders,
+        .timer = &timer
     };
-    box_render(&content);
+    timer_screen_render(&content);
     return 0;
 }
