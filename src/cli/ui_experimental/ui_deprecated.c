@@ -21,7 +21,7 @@ void draw_progress_bar(int percent, int width) {
 int calculate_progress(const Timer *t) {
     if (t->target_ms <= 0) return 100;
 
-    int64_t elapsed = ptimer_elapsed_ms(t);
+    int64_t elapsed = get_elapsed_ms(t);
 
     if (elapsed <= 0) return 0;
     if (elapsed >= t->target_ms) return 100;
@@ -31,7 +31,7 @@ int calculate_progress(const Timer *t) {
 
 
 void pomodoro_render(const Timer *t) {
-    TimeDisplay td = get_time_display(t);
+    DisplayTime td = get_time_display(t);
     
     // Clear screen and hide cursor
     printf("\033[2J\033[H\033[?25l");
@@ -46,7 +46,7 @@ void pomodoro_render(const Timer *t) {
     // Time (centered, large)
     printf("│                                 │\n");
     printf("│          %02d:%02d:%02d               │\n", 
-           td.minutes, td.seconds, td.milliseconds / 10);
+           td.minutes, td.seconds, td.centiseconds / 10);
     
     // Progress bar
     int progress = calculate_progress(t);  // 0-100

@@ -17,7 +17,13 @@ typedef enum {
     UI_COLOR_BLUE,
     UI_COLOR_MAGENTA,
     UI_COLOR_CYAN,
-    UI_COLOR_GRAY
+    UI_COLOR_GRAY,
+    UI_COLOR_SOFT_CYAN,      // Gentle cyan for running
+    UI_COLOR_SOFT_PURPLE,    // Soft purple for paused
+    UI_COLOR_SOFT_RED,       // Soft red for cancelled
+    UI_COLOR_SOFT_GREEN,     // Soft green for completed
+    UI_COLOR_NEON_PINK,      // Cyberpunk accent
+    UI_COLOR_ELECTRIC_BLUE   // Cyberpunk accent
 } UiColor;
 
 typedef struct {
@@ -61,15 +67,24 @@ typedef struct
 
 const char* ui_color_code(UiColor c) {
     switch (c) {
-        case UI_COLOR_RED:     return "\x1b[31m";
-        case UI_COLOR_GREEN:   return "\x1b[32m";
-        case UI_COLOR_YELLOW:  return "\x1b[33m";
-        case UI_COLOR_BLUE:    return "\x1b[34m";
-        case UI_COLOR_MAGENTA: return "\x1b[35m";
-        case UI_COLOR_CYAN:    return "\x1b[36m";
-        case UI_COLOR_GRAY:    return "\x1b[90m";
+        case UI_COLOR_RED:           return "\x1b[31m";
+        case UI_COLOR_GREEN:         return "\x1b[32m";
+        case UI_COLOR_YELLOW:        return "\x1b[33m";
+        case UI_COLOR_BLUE:          return "\x1b[34m";
+        case UI_COLOR_MAGENTA:       return "\x1b[35m";
+        case UI_COLOR_CYAN:          return "\x1b[36m";
+        case UI_COLOR_GRAY:          return "\x1b[90m";
+        
+        // Gentler cyberpunk colors (using 256-color mode)
+        case UI_COLOR_SOFT_CYAN:     return "\x1b[38;5;80m";   // Soft cyan-blue
+        case UI_COLOR_SOFT_PURPLE:   return "\x1b[38;5;141m";  // Soft purple/lavender
+        case UI_COLOR_SOFT_RED:      return "\x1b[38;5;203m";  // Soft coral red
+        case UI_COLOR_SOFT_GREEN:    return "\x1b[38;5;114m";  // Soft mint green
+        case UI_COLOR_NEON_PINK:     return "\x1b[38;5;213m";  // Neon pink
+        case UI_COLOR_ELECTRIC_BLUE: return "\x1b[38;5;81m";   // Electric blue
+        
         case UI_COLOR_DEFAULT:
-        default:               return "\x1b[0m";
+        default:                     return "\x1b[0m";
     }
 }
 
@@ -77,7 +92,7 @@ int calculate_progress(const Timer *t) {
     if (!t || t->target_ms <= 0)
         return 100;
 
-    int64_t elapsed = ptimer_elapsed_ms(t);
+    int64_t elapsed = get_elapsed_ms(t);
 
     if (elapsed <= 0)
         return 0;
@@ -163,16 +178,16 @@ void box_line_to_buf(
 // Building a view
 
 void timer_screen_build_view(TimerScreenState *state, TimerScreenView *view) {
-    if (state->timer->mode == MODE_COUNTDOWN) {
+    if (state->timer->timer_mode == MODE_COUNTDOWN) {
         strcpy(view->header, "POMODORO TIMER");
     }
     else {
         strcpy(view->header, "STOPWATCH TIMER");
     }
     
-    TimeDisplay td = get_time_display(state->timer);
+    DisplayTime td = get_time_display(state->timer);
     snprintf(view->time_str, sizeof view->time_str,
-             "%02d:%02d:%02d", td.minutes, td.seconds, td.milliseconds / 10);
+             "%02d:%02d:%02d", td.minutes, td.seconds, td.centiseconds);
 
     int percent = calculate_progress(state->timer);
     progress_bar_to_buf(view->progress_bar, sizeof view->progress_bar,
@@ -182,13 +197,14 @@ void timer_screen_build_view(TimerScreenState *state, TimerScreenView *view) {
             "%s -> %s", state->timer->category, state->timer->subcategory);
 
     if (state->timer->is_canceled)
-        view->border_color = UI_COLOR_RED;
+        view->border_color = UI_COLOR_SOFT_RED;      // Gentle red
     else if (state->timer->is_paused)
-        view->border_color = UI_COLOR_YELLOW;
+        view->border_color = UI_COLOR_SOFT_PURPLE;   // Gentle purple
     else if (percent >= 100)
-        view->border_color = UI_COLOR_GREEN;
+        view->border_color = UI_COLOR_SOFT_GREEN;    // Gentle green
     else 
-        view->border_color = UI_COLOR_CYAN;    
+        view->border_color = UI_COLOR_SOFT_CYAN;     // Gentle cyan
+   
         
     if (state->timer->is_paused) {
         sprintf(view->controls, "[Space] Resume  [Q] Quit");

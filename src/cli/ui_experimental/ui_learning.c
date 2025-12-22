@@ -42,7 +42,7 @@ int calculate_progress(const Timer *t) {
     if (!t || t->target_ms <= 0)
         return 100;
 
-    int64_t elapsed = ptimer_elapsed_ms(t);
+    int64_t elapsed = get_elapsed_ms(t);
 
     if (elapsed <= 0)
         return 0;
@@ -123,16 +123,16 @@ void box_line_to_buf(char *buf, const char *str, const Border *border, int width
 // Building a view
 
 void timer_screen_build_view(TimerScreenState *state, TimerScreenView *view) {
-    if (state->timer->mode == MODE_COUNTDOWN) {
+    if (state->timer->timer_mode == MODE_COUNTDOWN) {
         strcpy(view->header, "POMODORO TIMER");
     }
     else {
         strcpy(view->header, "STOPWATCH TIMER");
     }
     
-    TimeDisplay td = get_time_display(state->timer);
+    DisplayTime td = get_time_display(state->timer);
     snprintf(view->time_str, sizeof view->time_str,
-             "%02d:%02d:%02d", td.minutes, td.seconds, td.milliseconds / 10);
+             "%02d:%02d:%02d", td.minutes, td.seconds, td.centiseconds);
 
     int percent = calculate_progress(state->timer);
     progress_bar_to_buf(view->progress_bar, sizeof view->progress_bar,
@@ -199,7 +199,7 @@ int main() {
         .accumulated_ms = 5000,
         .started_at_ms = get_current_ms(),
         .target_ms = 15000,
-        .mode = MODE_COUNTDOWN,
+        .timer_mode = MODE_COUNTDOWN,
         .is_paused = false,
         .category = "cat",
         .subcategory = "subcat"

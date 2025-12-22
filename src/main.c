@@ -30,7 +30,7 @@ int main(void) {
     char category[] = "Coding";
     char subcategory[] = "Building a Pomodoro App";
 
-    Timer* t = ptimer_create(
+    Timer* t = create_timer(
         1,
         MODE_COUNTDOWN,
         category,
@@ -40,18 +40,18 @@ int main(void) {
     struct termios old_tio;
     setup_terminal(&old_tio);
 
-    ptimer_start(t);
+    start_timer(t);
 
-    while (!ptimer_finished(t)) {
+    while (!is_finished_timer(t)) {
         // Check for keyboard input
         char c;
         if (read(STDIN_FILENO, &c, 1) == 1) {
             if (c == ' ') {
                 t->is_paused = !t->is_paused;  // Toggle pause
                 if (t->is_paused) {
-                    ptimer_pause(t);
+                    pause_timer(t);
                 } else {
-                    ptimer_resume(t);
+                    resume_timer(t);
                 }
             } else if (c == 'q' || c == 'Q') {
                 t->is_canceled = true;
