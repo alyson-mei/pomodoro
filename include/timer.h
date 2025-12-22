@@ -24,8 +24,6 @@ typedef struct {
     int64_t accumulated_ms;
     TimerMode timer_mode;
     TimerState timer_state;
-    bool is_paused;
-    bool is_canceled;
     char category[BUF_SIZE];
     char subcategory[BUF_SIZE];
 } Timer;
@@ -43,7 +41,7 @@ DisplayTime get_time_display(const Timer *timer);
 Timer* create_timer(int minutes, TimerMode mode, const char *category, const char *subcategory);
 void start_timer(Timer *timer);
 void pause_timer(Timer *timer);
-void resume_timer(Timer *timer);
+void cancel_timer(Timer *timer);
 bool is_finished_timer(Timer *timer);
 
 #endif

@@ -178,12 +178,6 @@ void box_line_to_buf(
 // Building a view
 
 void timer_screen_build_view(TimerScreenState *state, TimerScreenView *view) {
-    if (state->timer->timer_mode == MODE_COUNTDOWN) {
-        strcpy(view->header, "POMODORO TIMER");
-    }
-    else {
-        strcpy(view->header, "STOPWATCH TIMER");
-    }
     
     DisplayTime td = get_time_display(state->timer);
     snprintf(view->time_str, sizeof view->time_str,
@@ -196,26 +190,42 @@ void timer_screen_build_view(TimerScreenState *state, TimerScreenView *view) {
     snprintf(view->category_str, sizeof view->category_str,
             "%s -> %s", state->timer->category, state->timer->subcategory);
 
-    if (state->timer->is_canceled)
-        view->border_color = UI_COLOR_SOFT_RED;      // Gentle red
-    else if (state->timer->is_paused)
-        view->border_color = UI_COLOR_SOFT_PURPLE;   // Gentle purple
-    else if (percent >= 100)
-        view->border_color = UI_COLOR_SOFT_GREEN;    // Gentle green
-    else 
-        view->border_color = UI_COLOR_SOFT_CYAN;     // Gentle cyan
-   
-        
-    if (state->timer->is_paused) {
-        sprintf(view->controls, "[Space] Resume  [Q] Quit");
-    }
-    else {
-        sprintf(view->controls, "[Space] Pause   [Q] Quit");
+    sprintf(view->controls, "[Space] Pause   [Q] Quit");
+    view->border_color = UI_COLOR_SOFT_CYAN;
+
+
+    switch (state->timer->timer_mode)
+    {
+    case MODE_COUNTDOWN:
+        strcpy(view->header, "POMODORO TIMER");
+        break;
+    case MODE_STOPWATCH:
+        strcpy(view->header, "STOPWATCH TIMER");
+        break;
+    default:
+        break;
     }
 
-    if (state->timer->is_canceled) {
+    switch (state->timer->timer_state)
+    {
+    case STATE_ACTIVE:
+        view->border_color = UI_COLOR_SOFT_CYAN;
+        break;
+    case STATE_PAUSED:
+        view->border_color = UI_COLOR_SOFT_PURPLE;
+        sprintf(view->controls, "[Space] Resume  [Q] Quit");
+        break;
+    case STATE_COMPLETED:
+        view->border_color = UI_COLOR_SOFT_GREEN;
+        break;
+    case STATE_CANCELLED:
+        view->border_color = UI_COLOR_SOFT_RED;
         sprintf(view->header, "CANCELLED");
+        break;
+    default:
+        break;
     }
+
 }
 
 // Rendering 

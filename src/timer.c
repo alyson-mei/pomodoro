@@ -20,7 +20,7 @@ int64_t get_current_ms(void) {
 int64_t get_elapsed_ms(const Timer *timer) {
     int64_t elapsed = timer->accumulated_ms;
 
-    if (!timer->is_paused && timer->started_at_ms > 0) {
+    if (timer->timer_state == STATE_ACTIVE && timer->started_at_ms > 0) {
         elapsed += get_current_ms() - timer->started_at_ms;
     }
 
@@ -42,8 +42,6 @@ Timer* create_timer(
         .accumulated_ms = 0,
         .timer_mode     = timer_mode,
         .timer_state    = STATE_ACTIVE,
-        .is_paused      = false,
-        .is_canceled    = false,
     };    
     
     strncpy(timer->category, category, sizeof timer->category - 1);
@@ -62,18 +60,14 @@ void start_timer(Timer *timer) {
 void pause_timer(Timer *timer) {
     timer->accumulated_ms += (get_current_ms() - timer->started_at_ms);
     timer->timer_state = STATE_PAUSED;
-    timer->is_paused = true;
-}
-
-void resume_timer(Timer *timer) {
-    timer->started_at_ms = get_current_ms();
-    timer->timer_state = STATE_ACTIVE;
-    timer->is_paused = false;
 }
 
 void cancel_timer(Timer *timer) {
+    if (timer->timer_state == STATE_ACTIVE) {
+        timer->accumulated_ms += get_current_ms() - timer->started_at_ms;
+    }
+    timer->started_at_ms = 0;
     timer->timer_state = STATE_CANCELLED;
-    timer->is_canceled = true;
 }
 
 bool is_finished_timer(Timer *timer) {
@@ -82,7 +76,7 @@ bool is_finished_timer(Timer *timer) {
     int64_t now = get_current_ms();
     int64_t elapsed = timer->accumulated_ms;
 
-    if (!timer->is_paused)
+    if (timer->timer_state == STATE_ACTIVE)
         elapsed += now - timer->started_at_ms;
     
     if (elapsed >= timer->target_ms) {
@@ -96,7 +90,7 @@ bool is_finished_timer(Timer *timer) {
 DisplayTime get_time_display(const Timer *timer) {
     int64_t now_ms = get_current_ms();
     int64_t elapsed_ms = timer->accumulated_ms;
-    if (!timer->is_paused) {
+    if (timer->timer_state == STATE_ACTIVE) {
         elapsed_ms += now_ms - timer->started_at_ms;
     }
 

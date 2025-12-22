@@ -30,8 +30,8 @@ int main(void) {
     char category[] = "Coding";
     char subcategory[] = "Building a Pomodoro App";
 
-    Timer* t = create_timer(
-        1,
+    Timer* timer = create_timer(
+        5,
         MODE_COUNTDOWN,
         category,
         subcategory
@@ -40,30 +40,33 @@ int main(void) {
     struct termios old_tio;
     setup_terminal(&old_tio);
 
-    start_timer(t);
+    start_timer(timer);
 
-    while (!is_finished_timer(t)) {
+    while (timer->timer_state != STATE_COMPLETED && timer->timer_state != STATE_CANCELLED) {
         // Check for keyboard input
         char c;
         if (read(STDIN_FILENO, &c, 1) == 1) {
             if (c == ' ') {
-                t->is_paused = !t->is_paused;  // Toggle pause
-                if (t->is_paused) {
-                    pause_timer(t);
-                } else {
-                    resume_timer(t);
+                if (timer->timer_state == STATE_PAUSED) {
+                    start_timer(timer);
+                } else if (timer->timer_state == STATE_ACTIVE) {
+                    pause_timer(timer);
                 }
             } else if (c == 'q' || c == 'Q') {
-                t->is_canceled = true;
-                break;  // Quit
+                cancel_timer(timer);
+                break;
             }
         }
         
-        pomodoro_render(t);
+        // Check if timer finished
+        is_finished_timer(timer);
+        
+        pomodoro_render(timer);
         usleep(50000);
     }
+
     
-    pomodoro_render(t);
+    pomodoro_render(timer);
     
     restore_terminal(&old_tio);
     printf("\033[?25h"); // restore cursor
