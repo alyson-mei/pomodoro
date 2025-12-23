@@ -1,10 +1,10 @@
 #ifndef TIMER_H
 #define TIMER_H
 
-#define BUF_SIZE 256 //TODO: replace to common header
-
 #include <stdint.h>
 #include <stdbool.h>
+
+#include "global.h"
 
 typedef enum {
     MODE_COUNTDOWN,
@@ -31,8 +31,8 @@ typedef struct {
     TimerMode timer_mode;
     TimerWorkMode timer_work_mode;
     TimerState timer_state;
-    char category[BUF_SIZE];
-    char subcategory[BUF_SIZE];
+    char category[BUF_SIZE_L];
+    char subcategory[BUF_SIZE_L];
 } Timer;
 
 typedef struct {
@@ -52,6 +52,7 @@ Timer* create_timer(
     const char *category,
     const char *subcategory
 );
+
 void start_timer(Timer *timer);
 void pause_timer(Timer *timer);
 void cancel_timer(Timer *timer);

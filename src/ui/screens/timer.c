@@ -5,70 +5,81 @@
 
 #include "../../../include/timer.h"
 #include "../../../include/display.h"
+#include "../../../include/global.h"
 
 // Timer screen specific structs
 
 typedef struct
 {
-    int width;
-    int padding_horizontal;
-    int padding_header_vert;
-    
-    int margin_after_header;
-    int margin_after_time;
-    int margin_after_category;
-    int margin_after_controls;
-} TimerScreenLayout;
-
-typedef struct {
-    TimerScreenLayout *screen_layout;
-    const BoxBorders *borders;
-    Timer *timer;
-} TimerScreenState;
-
-typedef struct
-{
-    char header[64];
-    char time_str[16];
-    char progress_bar[128];
-    char category_str[64];
-    char controls[64];
+    char header[BUF_SIZE_S];
+    char time[BUF_SIZE_XXS];
+    char progress_bar[BUF_SIZE_M];
+    char category[BUF_SIZE_L];
+    char controls[BUF_SIZE_L];
     UiColor border_color;
 } TimerScreenView;
 
-// Screen specific display functions
+// Timer screen specific display functions
 
-const char* get_header(
+void set_header(
+    char *header,
     TimerMode mode, 
     TimerWorkMode work_mode,
-    TimerState state
+    TimerState state,
+    int current_iteration,
+    int total_iterations
 ) {
-    if (mode == MODE_COUNTDOWN) {
-        if (state == STATE_CANCELLED)
-            return "TIMER: CANCELLED";
-        switch (work_mode) {
-            case MODE_WORK:       return "TIMER: WORK";
-            case MODE_BREAK:      return "TIMER: BREAK";
-            case MODE_LONG_BREAK: return "TIMER: LONG BREAK";
-            default:              return "TIMER";
+    const char *mode_str = (mode == MODE_COUNTDOWN) ? "TIMER" : "STOPWATCH";
+    
+    if (state == STATE_CANCELLED) {
+        if (mode == MODE_COUNTDOWN && total_iterations >= 2) {
+            sprintf(header, "%s: CANCELLED (%d / %d)", mode_str, current_iteration, total_iterations);
+        } else {
+            sprintf(header, "%s: CANCELLED", mode_str);
         }
-    } else { // MODE_STOPWATCH
-        if (state == STATE_CANCELLED)
-            return "STOPWATCH: CANCELLED";
+    }
+
+    else {
+        const char *work_str;
         switch (work_mode) {
-            case MODE_WORK:       return "STOPWATCH: WORK";
-            case MODE_BREAK:      return "STOPWATCH: BREAK";
-            case MODE_LONG_BREAK: return "STOPWATCH: LONG BREAK";
-            default:              return "STOPWATCH";
+            case MODE_WORK:       work_str = "WORK"; break;
+            case MODE_BREAK:      work_str = "BREAK"; break;
+            case MODE_LONG_BREAK: work_str = "LONG BREAK"; break;
+            default:              work_str = NULL; break;
+        }
+        
+        if (work_str) {
+            if (total_iterations >= 2) {
+                sprintf(header, "%s: %s (%d / %d)", mode_str, work_str, current_iteration, total_iterations);
+            } else {
+                sprintf(header, "%s: %s", mode_str, work_str);
+            }
+        } else {
+            sprintf(header, "%s", mode_str);
         }
     }
 }
 
-const char* get_controls(TimerState state) {
+void set_controls(
+    char* controls,
+    TimerState state
+) {
     switch (state) {
-        case STATE_ACTIVE:          return "[Space] Pause    [Q] Quit";
-        case STATE_PAUSED:          return "[Space] Resume   [Q] Quit";
-        case STATE_COMPLETED:       return "[Enter] Continue [Q] Quit";
+        case STATE_ACTIVE:          
+            sprintf(controls, "[Space] Pause    [Q] Quit");
+            break;
+        case STATE_PAUSED:          
+            sprintf(controls, "[Space] Resume   [Q] Quit");
+            break;
+        case STATE_COMPLETED:       
+            sprintf(controls, "[Enter] Continue [Q] Quit");
+            break;
+        case STATE_CANCELLED:
+            sprintf(controls, "     [Enter/Q]   Quit    ");
+            break;
+        default:
+            sprintf(controls, " ");
+            break;
     }
 }
 
@@ -129,7 +140,7 @@ void progress_bar_to_buf(
 
     *p = '\0';
 
-    char buf_percent[16];
+    char buf_percent[BUF_SIZE_XXS];
     snprintf(buf_percent, sizeof buf_percent, " %3d%%", percent);
     strcat(p, buf_percent);
     
@@ -166,8 +177,8 @@ void timer_screen_build_view(TimerScreenState *state, TimerScreenView *view) {
     
     DisplayTime td = get_time_display(state->timer);
     snprintf(
-        view->time_str,
-        sizeof view->time_str,
+        view->time,
+        sizeof view->time,
         "%02d:%02d:%02d",
         td.minutes,
         td.seconds,
@@ -183,28 +194,23 @@ void timer_screen_build_view(TimerScreenState *state, TimerScreenView *view) {
     );
 
     snprintf(
-        view->category_str,
-        sizeof view->category_str,
+        view->category,
+        sizeof view->category,
         "%s -> %s",
         state->timer->category,
         state->timer->subcategory
     );
 
-    sprintf(view->controls, "[Space] Pause   [Q] Quit");
-    view->border_color = UI_COLOR_SOFT_CYAN;
+    set_header(
+        view->header,
+        state->timer->timer_mode,
+        state->timer->timer_work_mode,
+        state->timer->timer_state,
+        2,                                  // FIX HARDCODED
+        4                                   // FIX HARDCODED
+    );
 
-
-    switch (state->timer->timer_mode)
-    {
-    case MODE_COUNTDOWN:
-        strcpy(view->header, "POMODORO TIMER");
-        break;
-    case MODE_STOPWATCH:
-        strcpy(view->header, "STOPWATCH TIMER");
-        break;
-    default:
-        break;
-    }
+    set_controls(view->controls, state->timer->timer_state);
 
     switch (state->timer->timer_state)
     {
@@ -213,16 +219,15 @@ void timer_screen_build_view(TimerScreenState *state, TimerScreenView *view) {
         break;
     case STATE_PAUSED:
         view->border_color = UI_COLOR_SOFT_PURPLE;
-        sprintf(view->controls, "[Space] Resume  [Q] Quit");
         break;
     case STATE_COMPLETED:
         view->border_color = UI_COLOR_SOFT_GREEN;
         break;
     case STATE_CANCELLED:
         view->border_color = UI_COLOR_SOFT_RED;
-        sprintf(view->header, "CANCELLED");
         break;
     default:
+        view->border_color = UI_COLOR_SOFT_CYAN;
         break;
     }
 
@@ -243,7 +248,7 @@ void box_render_line(
     printf("%s%s%s", color, border->left_char, UI_COLOR_RESET);
     
     // Truncate string if too long
-    char truncated[256];
+    char truncated[BUF_SIZE_L];
     int str_len = strlen(str);
     
     if (str_len > width) {
@@ -326,7 +331,7 @@ void timer_screen_render(
         state->borders->mid_bottom, 
         state->screen_layout->width, 
         view->border_color, 
-        0
+        1
     );
 
     // Time: margin, time, progress bar
@@ -340,7 +345,7 @@ void timer_screen_render(
         );
     }
     box_render_line(            // Time
-        view->time_str, 
+        view->time, 
         state->borders->mid, 
         state->screen_layout->width, 
         view->border_color, 
@@ -365,7 +370,7 @@ void timer_screen_render(
         );
     }
     box_render_line(            // Category 
-        view->category_str, 
+        view->category, 
         state->borders->mid, 
         state->screen_layout->width, 
         view->border_color, 0
@@ -408,7 +413,7 @@ void timer_screen_render(
     );
 }
 
-void pomodoro_render(const Timer *timer) {
+void pomodoro_render(const Timer *timer) {              // We will get rid of this function later
     const Border top_border     = {"╔", "═", "╗"};
     const Border mid_border     = {"║", " ", "║"};
     const Border midb_border    = {"╠", "═", "╣"};

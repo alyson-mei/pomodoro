@@ -6,6 +6,8 @@
 #include "../../include/timer.h"
 #include "../../include/display.h"
 
+
+
 const char* ui_color_code(UiColor c) {
     switch (c) {
         case UI_COLOR_RED:           return "\x1b[31m";

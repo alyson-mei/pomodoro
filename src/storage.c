@@ -3,6 +3,8 @@
 #include <stdlib.h>
 #include <stdint.h>
 
+#include "../include/global.h"
+
 #define BUF_SIZE 256
 #define MAX_CATEGORIES 64
 #define MAX_SUBCATEGORIES 64
@@ -12,12 +14,12 @@
 #define PROGRESS_BIN_PATH "../data/progress.bin"
 
 typedef struct {
-    char name[BUF_SIZE];
+    char name[BUF_SIZE_L];
     int64_t total_ms;
 } Subcategory;
 
 typedef struct {
-    char name[BUF_SIZE];
+    char name[BUF_SIZE_L];
     Subcategory subs[MAX_SUBCATEGORIES];
     size_t count;
     int64_t total_ms;
@@ -73,7 +75,7 @@ void add_time(
 
     // 1) Find or create category
     for (i = 0; i < list->count; i++) {
-        if (strncmp(list->categories[i].name, category_name, BUF_SIZE) == 0)
+        if (strncmp(list->categories[i].name, category_name, BUF_SIZE_L) == 0)
             break;
     }
 
@@ -84,15 +86,15 @@ void add_time(
         // new category
         if (list->count >= MAX_CATEGORIES) return; // max categories reached
         cat = &list->categories[list->count++];
-        strncpy(cat->name, category_name, BUF_SIZE-1);
-        cat->name[BUF_SIZE-1] = '\0';
+        strncpy(cat->name, category_name, BUF_SIZE_L-1);
+        cat->name[BUF_SIZE_L-1] = '\0';
         cat->count = 0;
         cat->total_ms = 0;
     }
 
     // 2) Find or create subcategory
     for (j = 0; j < cat->count; j++) {
-        if (strncmp(cat->subs[j].name, sub_name, BUF_SIZE) == 0)
+        if (strncmp(cat->subs[j].name, sub_name, BUF_SIZE_L) == 0)
             break;
     }
 
@@ -103,8 +105,8 @@ void add_time(
         // new subcategory
         if (cat->count >= MAX_SUBCATEGORIES) return; // max subcategories reached
         sub = &cat->subs[cat->count++];
-        strncpy(sub->name, sub_name, BUF_SIZE-1);
-        sub->name[BUF_SIZE-1] = '\0';
+        strncpy(sub->name, sub_name, BUF_SIZE_L-1);
+        sub->name[BUF_SIZE_L-1] = '\0';
         sub->total_ms = 0;
     }
 
@@ -142,19 +144,19 @@ int load_categories(CategoryList *list, const char *path) {
 }
 
 void write_yaml(const CategoryList *list, const char *path) {
-    char buf[BUF_SIZE];  // buffer for formatted durations
+    char buf[BUF_SIZE_L];  // buffer for formatted durations
 
     FILE *f = fopen(path, "w");
     if (!f) return;
 
     for (size_t i = 0; i < list->count; i++) {
         const Category *cat = &list->categories[i];
-        format_duration_ms(cat->total_ms, buf, BUF_SIZE, 1);
+        format_duration_ms(cat->total_ms, buf, BUF_SIZE_L, 1);
         fprintf(f, "%s:\n    total: %s\n", cat->name, buf);
 
         for (size_t j = 0; j < cat->count; j++) {
             const Subcategory *sub = &cat->subs[j];
-            format_duration_ms(sub->total_ms, buf, BUF_SIZE, 1);
+            format_duration_ms(sub->total_ms, buf, BUF_SIZE_L, 1);
             fprintf(f, "    - %s: %s\n", sub->name, buf);
         }
     }

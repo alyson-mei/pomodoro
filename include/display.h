@@ -3,9 +3,11 @@
 
 #include <stdint.h>
 #include <stdbool.h>
+#include "global.h"
 #include "timer.h"
 
 #define UI_COLOR_RESET "\x1b[0m"
+
 
 typedef enum {
     UI_COLOR_DEFAULT,
@@ -36,6 +38,25 @@ typedef struct {
     const Border *mid_bottom;
     const Border *bottom;
 } BoxBorders;
+
+typedef struct
+{
+    int width;
+    int padding_horizontal;     // FIX: UNUSED
+    int padding_header_vert;    // FIX: UNUSED    
+    
+    int margin_after_header;
+    int margin_after_time;
+    int margin_after_category;
+    int margin_after_controls;
+} TimerScreenLayout;
+
+typedef struct {
+    TimerScreenLayout *screen_layout;
+    const BoxBorders *borders;
+    Timer *timer;
+} TimerScreenState;
+
 
 const char* ui_color_code(UiColor c);
 void pomodoro_render(const Timer *t);
