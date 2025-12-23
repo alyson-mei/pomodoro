@@ -7,46 +7,22 @@
 #include "../../include/timer.h"
 #include "../../include/display.h"
 
-#define UI_COLOR_RESET "\x1b[0m"
-
-typedef enum {
-    UI_COLOR_DEFAULT,
-    UI_COLOR_RED,
-    UI_COLOR_GREEN,
-    UI_COLOR_YELLOW,
-    UI_COLOR_BLUE,
-    UI_COLOR_MAGENTA,
-    UI_COLOR_CYAN,
-    UI_COLOR_GRAY,
-    UI_COLOR_SOFT_CYAN,      // Gentle cyan for running
-    UI_COLOR_SOFT_PURPLE,    // Soft purple for paused
-    UI_COLOR_SOFT_RED,       // Soft red for cancelled
-    UI_COLOR_SOFT_GREEN,     // Soft green for completed
-    UI_COLOR_NEON_PINK,      // Cyberpunk accent
-    UI_COLOR_ELECTRIC_BLUE   // Cyberpunk accent
-} UiColor;
-
-typedef struct {
-    const char *left_char;
-    const char *mid_char;
-    const char *right_char;
-} Border;
-
-typedef struct {
-    const Border *top;
-    const Border *mid;
-    const Border *mid_bottom;
-    const Border *bottom;
-} BoxBorders;
-
-typedef struct {
+typedef struct
+{
     int width;
+    int padding_horizontal;
     int padding_header_vert;
-    int padding_top;
-    int padding_mid;
-    int padding_midb;
-    int padding_botttom;
+    
+    int margin_after_header;
+    int margin_after_time;
+    int margin_after_category;
+    int margin_after_controls;
+} TimerScreenLayout;
+
+
+typedef struct {
     const char *controls;
+    TimerScreenLayout *screen_layout;
     const BoxBorders *borders;
     Timer *timer;
 } TimerScreenState;
@@ -180,15 +156,30 @@ void box_line_to_buf(
 void timer_screen_build_view(TimerScreenState *state, TimerScreenView *view) {
     
     DisplayTime td = get_time_display(state->timer);
-    snprintf(view->time_str, sizeof view->time_str,
-             "%02d:%02d:%02d", td.minutes, td.seconds, td.centiseconds);
-
+    snprintf(
+        view->time_str,
+        sizeof view->time_str,
+        "%02d:%02d:%02d",
+        td.minutes,
+        td.seconds,
+        td.centiseconds
+    );
+        
     int percent = calculate_progress(state->timer);
-    progress_bar_to_buf(view->progress_bar, sizeof view->progress_bar,
-                            percent, state->width / 2);
+    progress_bar_to_buf(
+        view->progress_bar,
+        sizeof view->progress_bar,
+        percent,
+        state->screen_layout->width / 2
+    );
 
-    snprintf(view->category_str, sizeof view->category_str,
-            "%s -> %s", state->timer->category, state->timer->subcategory);
+    snprintf(
+        view->category_str,
+        sizeof view->category_str,
+        "%s -> %s",
+        state->timer->category,
+        state->timer->subcategory
+    );
 
     sprintf(view->controls, "[Space] Pause   [Q] Quit");
     view->border_color = UI_COLOR_SOFT_CYAN;
@@ -278,9 +269,11 @@ void box_render_line(
 }
 
 
-void timer_screen_render(TimerScreenState *state, TimerScreenView *view) {
+void timer_screen_render(
+    TimerScreenState *state,
+    TimerScreenView *view
+    ) {
     char buf[256];
-    int w = state->width;
 
     printf("\033[2J");      // Clear screen
     printf("\033[3J");      // Clear scrollback buffer
@@ -288,44 +281,138 @@ void timer_screen_render(TimerScreenState *state, TimerScreenView *view) {
     printf("\033[?25l");    // Hide cursor
     fflush(stdout);    fflush(stdout);
 
-    // Header
-    box_render_line(buf, "", state->borders->top, w, view->border_color, 1);
-    for (int i = 0; i < state->padding_header_vert; i ++) {
-        box_render_line(buf, "", state->borders->mid, w, view->border_color, 0);
+    // Header: top border, margin, header text, margin, lower border
+    box_render_line(            //Top border
+        buf,
+        "",
+        state->borders->top,
+        state->screen_layout->width,
+        view->border_color,
+        1
+    );
+    for (int i = 0; i < state->screen_layout->padding_header_vert; i ++) {
+        box_render_line(        // Margin
+            buf,
+            "",
+            state->borders->mid, 
+            state->screen_layout->width, 
+            view->border_color, 
+            0
+        );
     }
-    box_render_line(buf, view->header, state->borders->mid, w, view->border_color, 0);
-    for (int i = 0; i < state->padding_header_vert; i ++) {
-        box_render_line(buf, "", state->borders->mid, w, view->border_color, 0);
+    box_render_line(            // Header text
+        buf, 
+        view->header, 
+        state->borders->mid, 
+        state->screen_layout->width, 
+        view->border_color, 
+        0
+    );
+    for (int i = 0; i < state->screen_layout->padding_header_vert; i ++) {
+        box_render_line(        // Margin
+            buf,
+            "",
+            state->borders->mid, 
+            state->screen_layout->width, 
+            view->border_color, 
+            0
+        );
     }
-    box_render_line(buf, "", state->borders->mid_bottom, w, view->border_color, 1);
+    box_render_line(            // Lower border
+        buf, 
+        "", 
+        state->borders->mid_bottom, 
+        state->screen_layout->width, 
+        view->border_color, 
+        0
+    );
 
-    // Time
-    for (int i = 0; i < state->padding_top; i ++) {
-        box_render_line(buf, "", state->borders->mid, w, view->border_color, 0);
+    // Time: margin, time, progress bar
+    for (int i = 0; i < state->screen_layout->margin_after_header; i ++) {
+        box_render_line(        // Margin
+            buf,
+            "",
+            state->borders->mid, 
+            state->screen_layout->width, 
+            view->border_color, 
+            0
+        );
     }
+    box_render_line(            // Time
+        buf, 
+        view->time_str, 
+        state->borders->mid, 
+        state->screen_layout->width, 
+        view->border_color, 
+        0
+    );
+    box_render_line(            // Progress bar
+        buf,    
+        view->progress_bar, 
+        state->borders->mid, 
+        state->screen_layout->width * 2, // Specifics of rendering progress bar symbols
+        view->border_color, 
+        0
+    );
 
-    box_render_line(buf, view->time_str, state->borders->mid, w, view->border_color, 0);
-    box_render_line(buf, view->progress_bar, state->borders->mid, w * 2, view->border_color, 0);
-
-    for (int i = 0; i < state->padding_mid; i ++) {
-        box_render_line(buf, "", state->borders->mid, w, view->border_color, 0);
+    // Category: margin, category
+    for (int i = 0; i < state->screen_layout->margin_after_time; i ++) {
+        box_render_line(        // Margin      
+            buf,
+            "",
+            state->borders->mid, 
+            state->screen_layout->width, 
+            view->border_color, 
+            0
+        );
     }
+    box_render_line(            // Category 
+        buf, 
+        view->category_str, 
+        state->borders->mid, 
+        state->screen_layout->width, 
+        view->border_color, 0
+    );
 
-    // Category
-    box_render_line(buf, view->category_str, state->borders->mid, w, view->border_color, 0);
-
-    for (int i = 0; i < state->padding_midb; i ++) {
-        box_render_line(buf, "", state->borders->mid, w, view->border_color, 0);
+    // Controls: margin, controls
+    for (int i = 0; i < state->screen_layout->margin_after_category; i ++) {
+        box_render_line(        // Margin
+            buf,
+            "",
+            state->borders->mid, 
+            state->screen_layout->width, 
+            view->border_color, 
+            0
+        );
     }
-
-    // Controls
-    box_render_line(buf, view->controls, state->borders->mid, w, view->border_color, 0);
+    box_render_line(            // Controls
+        buf, 
+        view->controls, 
+        state->borders->mid, 
+        state->screen_layout->width, 
+        view->border_color, 
+        0
+    );
     
-    for (int i = 0; i < state->padding_botttom; i ++) {
-        box_render_line(buf, "", state->borders->mid, w, view->border_color, 0);
+    // Margin and bottom border
+    for (int i = 0; i < state->screen_layout->margin_after_controls; i ++) {
+        box_render_line(        // Margin                    
+            buf,
+            "",
+            state->borders->mid, 
+            state->screen_layout->width, 
+            view->border_color, 
+            0
+        );
     }
-    
-    box_render_line(buf, "", state->borders->bottom, w, view->border_color, 1);
+    box_render_line(            // Bottom border
+        buf, 
+        "", 
+        state->borders->bottom, 
+        state->screen_layout->width, 
+        view->border_color, 
+        1
+    );
 }
 
 void pomodoro_render(const Timer *timer) {
@@ -341,13 +428,19 @@ void pomodoro_render(const Timer *timer) {
         .bottom     = &bottom_border
     };
 
-    TimerScreenState content = {
+    TimerScreenLayout screen_layout = {
         .width = 40,
+        .padding_horizontal = 8,
         .padding_header_vert = 1,
-        .padding_top = 3,
-        .padding_mid = 1,
-        .padding_midb = 3,
-        .padding_botttom = 1,
+
+        .margin_after_header = 3,
+        .margin_after_time = 1,
+        .margin_after_category = 3,
+        .margin_after_controls = 1
+    };
+
+    TimerScreenState content = {
+        .screen_layout = &screen_layout,
         .controls = "[Space] Pause  [Q] Quit",
         .borders = &borders,
         .timer = timer

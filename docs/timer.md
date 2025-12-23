@@ -1,4 +1,4 @@
-# A documentation on timer module
+# Documentation for the timer module
 
 ## Logic
 
