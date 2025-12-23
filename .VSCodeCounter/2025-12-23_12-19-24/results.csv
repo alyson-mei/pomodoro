@@ -1,0 +1,15 @@
+"filename", "language", "Makefile", "Ini", "YAML", "C", "C++", "Markdown", "comment", "blank", "total"
+"/home/alyson/C_projects/pomodoro/Makefile", "Makefile", 0, 0, 0, 0, 0, 0, 0, 1, 1
+"/home/alyson/C_projects/pomodoro/README.md", "Markdown", 0, 0, 0, 0, 0, 7, 0, 3, 10
+"/home/alyson/C_projects/pomodoro/config.ini", "Ini", 0, 12, 0, 0, 0, 0, 0, 1, 13
+"/home/alyson/C_projects/pomodoro/docs/timer.md", "Markdown", 0, 0, 0, 0, 0, 60, 0, 32, 92
+"/home/alyson/C_projects/pomodoro/include/display.h", "C++", 0, 0, 0, 0, 36, 0, 0, 8, 44
+"/home/alyson/C_projects/pomodoro/include/timer.h", "C++", 0, 0, 0, 0, 38, 0, 0, 10, 48
+"/home/alyson/C_projects/pomodoro/progress.yaml", "YAML", 0, 0, 7, 0, 0, 0, 0, 1, 8
+"/home/alyson/C_projects/pomodoro/src/config.c", "C", 0, 0, 0, 54, 0, 0, 4, 9, 67
+"/home/alyson/C_projects/pomodoro/src/main.c", "C", 0, 0, 0, 54, 0, 0, 3, 18, 75
+"/home/alyson/C_projects/pomodoro/src/storage.c", "C", 0, 0, 0, 138, 0, 0, 10, 41, 189
+"/home/alyson/C_projects/pomodoro/src/timer.c", "C", 0, 0, 0, 87, 0, 0, 0, 26, 113
+"/home/alyson/C_projects/pomodoro/src/ui/screens/timer.c", "C", 0, 0, 0, 331, 0, 0, 16, 65, 412
+"/home/alyson/C_projects/pomodoro/src/ui/ui.c", "C", 0, 0, 0, 32, 0, 0, 1, 6, 39
+"Total", "-", 0, 12, 7, 696, 74, 67, 34, 221, 1111

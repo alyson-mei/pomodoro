@@ -33,6 +33,7 @@ int main(void) {
     Timer* timer = create_timer(
         5,
         MODE_COUNTDOWN,
+        MODE_WORK,
         category,
         subcategory
     );

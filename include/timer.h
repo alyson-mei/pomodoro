@@ -12,6 +12,12 @@ typedef enum {
 } TimerMode;
 
 typedef enum {
+    MODE_WORK,
+    MODE_BREAK,
+    MODE_LONG_BREAK
+} TimerWorkMode;
+
+typedef enum {
     STATE_ACTIVE,
     STATE_PAUSED,
     STATE_COMPLETED,
@@ -23,6 +29,7 @@ typedef struct {
     int64_t target_ms;
     int64_t accumulated_ms;
     TimerMode timer_mode;
+    TimerWorkMode timer_work_mode;
     TimerState timer_state;
     char category[BUF_SIZE];
     char subcategory[BUF_SIZE];
@@ -38,7 +45,13 @@ int64_t get_current_ms(void);
 int64_t get_elapsed_ms(const Timer *timer);
 
 DisplayTime get_time_display(const Timer *timer);
-Timer* create_timer(int minutes, TimerMode mode, const char *category, const char *subcategory);
+Timer* create_timer(
+    int minutes,
+    TimerMode timer_mode, 
+    TimerWorkMode timer_mode_work,
+    const char *category,
+    const char *subcategory
+);
 void start_timer(Timer *timer);
 void pause_timer(Timer *timer);
 void cancel_timer(Timer *timer);

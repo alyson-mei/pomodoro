@@ -37,10 +37,7 @@ typedef struct {
     const Border *bottom;
 } BoxBorders;
 
-
-
-void display_render(const Timer *t);
-
+const char* ui_color_code(UiColor c);
 void pomodoro_render(const Timer *t);
 
 #endif

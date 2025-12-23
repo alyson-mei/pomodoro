@@ -30,6 +30,7 @@ int64_t get_elapsed_ms(const Timer *timer) {
 Timer* create_timer(
     int minutes,
     TimerMode timer_mode, 
+    TimerWorkMode timer_mode_work,
     const char *category,
     const char *subcategory
 ) {
@@ -41,6 +42,7 @@ Timer* create_timer(
         .target_ms      = minutes * 60 * 1000,
         .accumulated_ms = 0,
         .timer_mode     = timer_mode,
+        .timer_work_mode = timer_mode_work,
         .timer_state    = STATE_ACTIVE,
     };    
     
