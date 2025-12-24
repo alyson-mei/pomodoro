@@ -4,6 +4,9 @@
 #include <ctype.h>
 #include "../include/global.h"
 
+// TODO: Use more consistent definitions for buffer sizes
+// TODO: Aliases for categories/activities? Or some kind of fast search? 
+
 typedef struct {
     char timer_mode[BUF_SIZE_XS];
     int work_minutes;
@@ -21,13 +24,21 @@ typedef struct {
 typedef struct {
     char name[BUF_SIZE_S];
     PresetCycle cycles[MAX_CYCLES_PER_PRESET];  
-    int n_cycles;
-} PresetsSettings;
+    int n_presets;
+} PresetSettings;
 
 typedef struct {
     char color_theme[BUF_SIZE_XS];
     char borders_type[BUF_SIZE_XS];
 } UISettings;
+
+typedef struct {
+    TimerSettings timer;
+    PresetSettings presets[MAX_PRESETS];
+    int n_presets;
+    UISettings ui;
+} Settings;
+
 
 // Trim leading and trailing whitespace
 static char* trim(char *str) {
@@ -148,7 +159,7 @@ int parse_preset_value(const char *str, PresetCycle *cycles, int max_cycles) {
 }
 
 // Parse all presets from config string
-int parse_presets(const char *str, PresetsSettings *presets, int max_presets) {
+int parse_presets(const char *str, PresetSettings *presets, int max_presets) {
     int preset_count = 0;
     char line[BUF_SIZE_L];
     const char *ptr = str;
@@ -178,13 +189,13 @@ int parse_presets(const char *str, PresetsSettings *presets, int max_presets) {
             strncpy(presets[preset_count].name, key, 63);
             presets[preset_count].name[63] = '\0';
             
-            presets[preset_count].n_cycles = parse_preset_value(
+            presets[preset_count].n_presets = parse_preset_value(
                 value, 
                 presets[preset_count].cycles, 
                 MAX_CYCLES_PER_PRESET
             );
             
-            if (presets[preset_count].n_cycles > 0) {
+            if (presets[preset_count].n_presets > 0) {
                 preset_count++;
             }
         }
@@ -235,55 +246,100 @@ UISettings parse_ui(const char *str) {
 }
 
 
+// Load and parse entire config file
+Settings* load_config(const char *path) {
+    FILE *file = fopen(path, "r");
+    if (!file) {
+        fprintf(stderr, "Error: Could not open config file '%s'\n", path);
+        return NULL;
+    }
 
-// Example usage and testing
-void test_parser() {
-    const char *config = 
-        "[timer]\n"
-        "timer_mode          = COUNTDOWN\n"
-        "work_minutes        = 25\n"
-        "break_minutes       = 5\n"
-        "long_break_minutes  = 15\n"
-        "default_category    = Coding\n"
-        "default_activity    = Working on Pomodoro app\n"
-        "\n"
-        "[presets]\n"
-        "# format: work_minutes,break_minutes|\n"
-        "short               = 15,3 | 15,3 | 15,10\n"
-        "standard            = 25,5 | 25,5 | 25,15\n"
-        "long                = 25,5 | 25,5 | 25,5 | 25,15\n"
-        "\n"
-        "[ui]\n"
-        "color_theme         = CYBERPUNK\n"
-        "borders_type        = DOUBLE\n";
+    // Get file size
+    fseek(file, 0, SEEK_END);
+    long size = ftell(file);
+    fseek(file, 0, SEEK_SET);
 
-    TimerSettings timer = parse_timer(config);
-    printf("Timer mode: %s\n", timer.timer_mode);
-    printf("Work: %d, Break: %d, Long break: %d\n", 
-           timer.work_minutes, timer.break_minutes, timer.long_break_minutes);
-    printf("Category: %s\n", timer.default_category);
-    printf("Activity: %s\n\n", timer.default_activity);
+    // Allocate buffer and read entire file
+    char *buffer = (char*)malloc(size + 1);
+    if (!buffer) {
+        fprintf(stderr, "Error: Memory allocation failed\n");
+        fclose(file);
+        return NULL;
+    }
 
-    PresetsSettings presets[MAX_PRESETS];
-    int n_presets = parse_presets(config, presets, MAX_PRESETS);
-    printf("Found %d presets:\n", n_presets);
-    for (int i = 0; i < n_presets; i++) {
-        printf("  %s: ", presets[i].name);
-        for (int j = 0; j < presets[i].n_cycles; j++) {
-            printf("%d,%d ", presets[i].cycles[j].work_min, presets[i].cycles[j].break_min);
+    size_t bytes_read = fread(buffer, 1, size, file);
+    buffer[bytes_read] = '\0';
+    fclose(file);
+
+    // Allocate Settings struct
+    Settings *settings = (Settings*)calloc(1, sizeof(Settings));
+    if (!settings) {
+        fprintf(stderr, "Error: Memory allocation failed\n");
+        free(buffer);
+        return NULL;
+    }
+
+    // Parse all sections
+    settings->timer = parse_timer(buffer);
+    settings->n_presets = parse_presets(buffer, settings->presets, MAX_PRESETS);
+    settings->ui = parse_ui(buffer);
+
+    free(buffer);
+    return settings;
+}
+
+// Free settings allocated by load_config
+void free_config(Settings *settings) {
+    if (settings) {
+        free(settings);
+    }
+}
+
+
+
+// TODO: replace to tests 
+// Test config loading
+void test_file_loading() {
+    Settings *settings = load_config("config.ini");
+    if (!settings) {
+        printf("Failed to load config\n");
+        return;
+    }
+
+    printf("=== Settings loaded from file ===\n\n");
+    
+    printf("[Timer]\n");
+    printf("  Mode: %s\n", settings->timer.timer_mode);
+    printf("  Work: %d min, Break: %d min, Long break: %d min\n", 
+           settings->timer.work_minutes, 
+           settings->timer.break_minutes, 
+           settings->timer.long_break_minutes);
+    printf("  Category: %s\n", settings->timer.default_category);
+    printf("  Activity: %s\n\n", settings->timer.default_activity);
+
+    printf("[Presets] (%d total)\n", settings->n_presets);
+    for (int i = 0; i < settings->n_presets; i++) {
+        printf("  %s: ", settings->presets[i].name);
+        for (int j = 0; j < settings->presets[i].n_presets; j++) {
+            printf("%d,%d%s", 
+                   settings->presets[i].cycles[j].work_min, 
+                   settings->presets[i].cycles[j].break_min,
+                   (j < settings->presets[i].n_presets - 1) ? " | " : "");
         }
         printf("\n");
     }
     printf("\n");
 
-    UISettings ui = parse_ui(config);
-    printf("Theme: %s\n", ui.color_theme);
-    printf("Borders: %s\n", ui.borders_type);
+    printf("[UI]\n");
+    printf("  Theme: %s\n", settings->ui.color_theme);
+    printf("  Borders: %s\n", settings->ui.borders_type);
+
+    free_config(settings);
 }
 
 
-int main(){
+// int main(){
 
-    test_parser();
-    return 0;
-}
+//     test_file_loading();
+//     return 0;
+// }
