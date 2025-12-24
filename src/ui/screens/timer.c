@@ -29,7 +29,7 @@ void set_header(
     int current_iteration,
     int total_iterations
 ) {
-    const char *mode_str = (mode == MODE_COUNTDOWN) ? "TIMER" : "STOPWATCH";
+    const char *mode_str = (mode == MODE_COUNTDOWN) ? "COUNTDOWN" : "STOPWATCH";
     
     if (state == STATE_CANCELLED) {
         if (mode == MODE_COUNTDOWN && total_iterations >= 2) {
@@ -173,7 +173,10 @@ void box_line_to_buf(
 
 // Building a view
 
-void timer_screen_build_view(TimerScreenState *state, TimerScreenView *view) {
+void timer_screen_build_view(
+    TimerScreenState *state,
+    TimerScreenView *view
+) {
     
     DisplayTime td = get_time_display(state->timer);
     snprintf(
@@ -206,8 +209,8 @@ void timer_screen_build_view(TimerScreenState *state, TimerScreenView *view) {
         state->timer->timer_mode,
         state->timer->timer_work_mode,
         state->timer->timer_state,
-        2,                                  // FIX HARDCODED
-        4                                   // FIX HARDCODED
+        state->current_iteration,                                  
+        state->total_iterations                         
     );
 
     set_controls(view->controls, state->timer->timer_state);
@@ -240,7 +243,8 @@ void box_render_line(
     const Border *border,
     int width,
     UiColor border_color,
-    int paint_content  // 0 = don't color content, 1 = color content
+    int padding_horizontal,
+    int paint_content         // 0 = don't color content, 1 = color content
 ) {
     const char *color = ui_color_code(border_color);
     
@@ -253,7 +257,7 @@ void box_render_line(
     
     if (str_len > width) {
         // Truncate and add "..."
-        int max_len = width - 8; // Leave room for "..."
+        int max_len = width - padding_horizontal; // Leave room for "..."
         if (max_len < 0) max_len = 0;
         snprintf(truncated, sizeof(truncated), "%.*s...", max_len, str);
         str = truncated;
@@ -299,6 +303,7 @@ void timer_screen_render(
         state->borders->top,
         state->screen_layout->width,
         view->border_color,
+        state->screen_layout->padding_horizontal,
         1
     );
     for (int i = 0; i < state->screen_layout->padding_header_vert; i ++) {
@@ -307,6 +312,7 @@ void timer_screen_render(
             state->borders->mid, 
             state->screen_layout->width, 
             view->border_color, 
+            state->screen_layout->padding_horizontal,
             0
         );
     }
@@ -314,7 +320,8 @@ void timer_screen_render(
         view->header, 
         state->borders->mid, 
         state->screen_layout->width, 
-        view->border_color, 
+        view->border_color,
+        state->screen_layout->padding_horizontal, 
         0
     );
     for (int i = 0; i < state->screen_layout->padding_header_vert; i ++) {
@@ -322,7 +329,8 @@ void timer_screen_render(
             "",
             state->borders->mid, 
             state->screen_layout->width, 
-            view->border_color, 
+            view->border_color,
+            state->screen_layout->padding_horizontal, 
             0
         );
     }
@@ -331,6 +339,7 @@ void timer_screen_render(
         state->borders->mid_bottom, 
         state->screen_layout->width, 
         view->border_color, 
+        state->screen_layout->padding_horizontal, 
         1
     );
 
@@ -341,6 +350,7 @@ void timer_screen_render(
             state->borders->mid, 
             state->screen_layout->width, 
             view->border_color, 
+            state->screen_layout->padding_horizontal, 
             0
         );
     }
@@ -349,6 +359,7 @@ void timer_screen_render(
         state->borders->mid, 
         state->screen_layout->width, 
         view->border_color, 
+        state->screen_layout->padding_horizontal, 
         0
     );
     box_render_line(            // Progress bar
@@ -356,6 +367,7 @@ void timer_screen_render(
         state->borders->mid, 
         state->screen_layout->width * 2, // Specifics of rendering progress bar symbols
         view->border_color, 
+        state->screen_layout->padding_horizontal, 
         0
     );
 
@@ -366,6 +378,7 @@ void timer_screen_render(
             state->borders->mid, 
             state->screen_layout->width, 
             view->border_color, 
+            state->screen_layout->padding_horizontal, 
             0
         );
     }
@@ -373,7 +386,9 @@ void timer_screen_render(
         view->category, 
         state->borders->mid, 
         state->screen_layout->width, 
-        view->border_color, 0
+        view->border_color,
+        state->screen_layout->padding_horizontal,  
+        0
     );
 
     // Controls: margin, controls
@@ -383,6 +398,7 @@ void timer_screen_render(
             state->borders->mid, 
             state->screen_layout->width, 
             view->border_color, 
+            state->screen_layout->padding_horizontal, 
             0
         );
     }
@@ -391,6 +407,7 @@ void timer_screen_render(
         state->borders->mid, 
         state->screen_layout->width, 
         view->border_color, 
+        state->screen_layout->padding_horizontal,         
         0
     );
     
@@ -401,6 +418,7 @@ void timer_screen_render(
             state->borders->mid, 
             state->screen_layout->width, 
             view->border_color, 
+            state->screen_layout->padding_horizontal, 
             0
         );
     }
@@ -409,11 +427,16 @@ void timer_screen_render(
         state->borders->bottom, 
         state->screen_layout->width, 
         view->border_color, 
+        state->screen_layout->padding_horizontal,
         1
     );
 }
 
-void pomodoro_render(const Timer *timer) {              // We will get rid of this function later
+void pomodoro_render(
+    const Timer *timer,
+    int current_iteration,
+    int total_iterations
+) {              // We will get rid of this function later
     const Border top_border     = {"╔", "═", "╗"};
     const Border mid_border     = {"║", " ", "║"};
     const Border midb_border    = {"╠", "═", "╣"};
@@ -440,7 +463,9 @@ void pomodoro_render(const Timer *timer) {              // We will get rid of th
     TimerScreenState content = {
         .screen_layout = &screen_layout,
         .borders = &borders,
-        .timer = timer
+        .timer = timer,
+        .current_iteration = current_iteration,
+        .total_iterations = total_iterations
     };
 
     TimerScreenView view;

@@ -5,7 +5,7 @@
 
 #include "../../include/timer.h"
 #include "../../include/display.h"
-
+#include "../../include/global.h"
 
 
 const char* ui_color_code(UiColor c) {

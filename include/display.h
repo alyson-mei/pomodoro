@@ -55,10 +55,16 @@ typedef struct {
     TimerScreenLayout *screen_layout;
     const BoxBorders *borders;
     Timer *timer;
+    int current_iteration;
+    int total_iterations;
 } TimerScreenState;
 
 
 const char* ui_color_code(UiColor c);
-void pomodoro_render(const Timer *t);
+void pomodoro_render(
+    const Timer *t,
+    int current_iteration,
+    int total_iterations
+);
 
 #endif

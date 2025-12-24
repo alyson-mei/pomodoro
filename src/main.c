@@ -6,6 +6,7 @@
 
 #include "../include/timer.h"
 #include "../include/display.h"
+#include "../include/global.h"
 
 // Setup non-blocking input
 void setup_terminal(struct termios *old_tio) {
@@ -62,12 +63,12 @@ int main(void) {
         // Check if timer finished
         is_finished_timer(timer);
         
-        pomodoro_render(timer);
+        pomodoro_render(timer, 1, 4);
         usleep(50000);
     }
 
     
-    pomodoro_render(timer);
+    pomodoro_render(timer, 1, 4);
     
     restore_terminal(&old_tio);
     printf("\033[?25h"); // restore cursor
