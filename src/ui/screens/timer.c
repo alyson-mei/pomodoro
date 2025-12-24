@@ -14,8 +14,8 @@ typedef struct
     char header[BUF_SIZE_S];
     char time[BUF_SIZE_XXS];
     char progress_bar[BUF_SIZE_M];
-    char category[BUF_SIZE_L];
-    char controls[BUF_SIZE_L];
+    char category[BUF_SIZE_M];
+    char controls[BUF_SIZE_M];
     UiColor border_color;
 } TimerScreenView;
 
