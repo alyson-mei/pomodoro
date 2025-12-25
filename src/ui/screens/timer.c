@@ -6,6 +6,8 @@
 #include "../../../include/timer.h"
 #include "../../../include/display.h"
 #include "../../../include/global.h"
+#include "../../../include/literals.h"
+
 
 // Timer screen specific structs
 
@@ -29,22 +31,22 @@ void set_header(
     int current_iteration,
     int total_iterations
 ) {
-    const char *mode_str = (mode == MODE_COUNTDOWN) ? "COUNTDOWN" : "STOPWATCH";
+    const char *mode_str = (mode == MODE_COUNTDOWN) ? STR_TMR_COUNTDOWN : STR_TMR_STOPWATCH;
     
     if (state == STATE_CANCELLED) {
         if (mode == MODE_COUNTDOWN && total_iterations >= 2) {
-            sprintf(header, "%s: CANCELLED (%d / %d)", mode_str, current_iteration, total_iterations);
+            sprintf(header, "%s: %s (%d / %d)", mode_str, STR_TMR_CANCELLED, current_iteration, total_iterations);
         } else {
-            sprintf(header, "%s: CANCELLED", mode_str);
+            sprintf(header, "%s: %s", mode_str, STR_TMR_CANCELLED);
         }
     }
 
     else {
         const char *work_str;
         switch (work_mode) {
-            case MODE_WORK:       work_str = "WORK"; break;
-            case MODE_BREAK:      work_str = "BREAK"; break;
-            case MODE_LONG_BREAK: work_str = "LONG BREAK"; break;
+            case MODE_WORK:       work_str = STR_TMRW_WORK; break;
+            case MODE_BREAK:      work_str = STR_TMRW_BREAK; break;
+            case MODE_LONG_BREAK: work_str = STR_TMRW_LONG_BREAK; break;
             default:              work_str = NULL; break;
         }
         
@@ -66,16 +68,16 @@ void set_controls(
 ) {
     switch (state) {
         case STATE_ACTIVE:          
-            sprintf(controls, "[Space] Pause    [Q] Quit");
+            sprintf(controls, STR_CTRL_ACTIVE);
             break;
         case STATE_PAUSED:          
-            sprintf(controls, "[Space] Resume   [Q] Quit");
+            sprintf(controls, STR_CTRL_PAUSED);
             break;
         case STATE_COMPLETED:       
-            sprintf(controls, "[Enter] Continue [Q] Quit");
+            sprintf(controls, STR_CTRL_COMPLETED);
             break;
         case STATE_CANCELLED:
-            sprintf(controls, "     [Enter/Q]   Quit    ");
+            sprintf(controls, STR_CTRL_CANCELLED);
             break;
         default:
             sprintf(controls, " ");
