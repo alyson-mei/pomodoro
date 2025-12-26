@@ -5,7 +5,7 @@
 #include <fcntl.h>
 
 #include "../include/timer.h"
-#include "../include/display.h"
+#include "../include/ui.h"
 #include "../include/global.h"
 
 // Setup non-blocking input

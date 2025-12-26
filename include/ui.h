@@ -8,6 +8,17 @@
 
 #define UI_COLOR_RESET "\x1b[0m"
 
+typedef enum {
+    THEME_MINIMAL,
+    THEME_SIMPLE,
+    THEME_CYBERPUNK
+} UiColorTheme;
+
+typedef enum {
+    BORDER_MINIMAL,
+    BORDER_SINGLE,
+    BORDER_DOUBLE
+} UiBorderTheme;
 
 typedef enum {
     UI_COLOR_DEFAULT,
@@ -18,6 +29,7 @@ typedef enum {
     UI_COLOR_MAGENTA,
     UI_COLOR_CYAN,
     UI_COLOR_GRAY,
+
     UI_COLOR_SOFT_CYAN,      // Gentle cyan for running
     UI_COLOR_SOFT_PURPLE,    // Soft purple for paused
     UI_COLOR_SOFT_RED,       // Soft red for cancelled
@@ -42,7 +54,7 @@ typedef struct {
 typedef struct
 {
     int width;
-    int padding_horizontal;     // FIX: UNUSED
+    int padding_horizontal;
     int padding_header_vert;    // FIX: UNUSED    
     
     int margin_after_header;
@@ -58,7 +70,6 @@ typedef struct {
     int current_iteration;
     int total_iterations;
 } TimerScreenState;
-
 
 const char* ui_color_code(UiColor c);
 void pomodoro_render(

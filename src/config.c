@@ -3,7 +3,7 @@
 #include <string.h>
 #include <ctype.h>
 #include "../include/global.h"
-
+#include "../include/config.h"
 
 // Trim leading and trailing whitespace
 static char* trim(char *str) {
@@ -117,7 +117,7 @@ static void handle_countdown(const char *key, const char *value, void *data) {
 
 // Handler for [ui] section
 static void handle_ui(const char *key, const char *value, void *data) {
-    UISettings *settings = (UISettings*)data;
+    UiSettings *settings = (UiSettings*)data;
     
     if (strcmp(key, "color_theme") == 0) {
         strncpy(settings->color_theme, value, KEY_CONFIG_MAX_SIZE - 1);
@@ -143,8 +143,8 @@ CountdownSettings parse_countdown(const char *str) {
 }
 
 // Parse UI settings
-UISettings parse_ui(const char *str) {
-    UISettings settings = {0};
+UiSettings parse_ui(const char *str) {
+    UiSettings settings = {0};
     parse_section(str, "[ui]", handle_ui, &settings);
     return settings;
 }

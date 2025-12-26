@@ -89,7 +89,7 @@ bool is_finished_timer(Timer *timer) {
         return false;
 }
 
-DisplayTime get_time_display(const Timer *timer) {
+TimerDisplay get_time_display(const Timer *timer) {
     int64_t now_ms = get_current_ms();
     int64_t elapsed_ms = timer->accumulated_ms;
     if (timer->timer_state == STATE_ACTIVE) {
@@ -103,7 +103,7 @@ DisplayTime get_time_display(const Timer *timer) {
         display_ms = timer->target_ms - elapsed_ms;
     }
 
-    DisplayTime td;
+    TimerDisplay td;
     int64_t ms = display_ms < 0 ? 0 : display_ms;
 
     td.centiseconds = (ms / 10) % 100;

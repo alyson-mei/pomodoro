@@ -4,46 +4,9 @@
 #include <stdint.h>
 
 #include "../../include/timer.h"
-#include "../../include/display.h"
+#include "../../include/ui.h"
 #include "../../include/global.h"
-
-const Border simple_top_border     = {"-", "-", "-"};
-const Border simple_top_border     = {"|", " ", "|"};
-const Border simple_midb_border    = {"|", "-", "|"};
-const Border simple_bot_border     = {"-", "-", "-"};
-
-const BoxBorders simple_borders = {
-    .top        = &simple_top_border,
-    .mid        = &simple_top_border,
-    .mid_bottom = &simple_midb_border,
-    .bottom     = &simple_bot_border
-};
-
-// TODO: change symbols
-const Border ordinary_top_border     = {"-", "-", "-"};
-const Border ordinary_top_border     = {"|", " ", "|"};
-const Border ordinary_midb_border    = {"|", "-", "|"};
-const Border ordinary_bot_border     = {"-", "-", "-"};
-
-const BoxBorders simple_borders = {
-    .top        = &ordinary_top_border,
-    .mid        = &ordinary_top_border,
-    .mid_bottom = &ordinary_midb_border,
-    .bottom     = &ordinary_bot_border
-};
-
-const Border double_top_border     = {"╔", "═", "╗"};
-const Border double_top_border     = {"║", " ", "║"};
-const Border double_midb_border    = {"╠", "═", "╣"};
-const Border double_bot_border     = {"╚", "═", "╝"};
-
-const BoxBorders double_borders = {
-    .top        = &double_top_border,
-    .mid        = &double_top_border,
-    .mid_bottom = &double_midb_border,
-    .bottom     = &double_bot_border
-};
-
+#include "../../include/literals.h"
 
 
 

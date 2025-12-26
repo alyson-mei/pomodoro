@@ -25,6 +25,12 @@ typedef enum {
 } TimerState;
 
 typedef struct {
+    int minutes;
+    int seconds;
+    int centiseconds;
+} TimerDisplay;
+
+typedef struct {
     int64_t started_at_ms;
     int64_t target_ms;
     int64_t accumulated_ms;
@@ -35,16 +41,10 @@ typedef struct {
     char subcategory[BUF_SIZE_L];
 } Timer;
 
-typedef struct {
-    int minutes;
-    int seconds;
-    int centiseconds;
-} DisplayTime;
-
 int64_t get_current_ms(void);
 int64_t get_elapsed_ms(const Timer *timer);
 
-DisplayTime get_time_display(const Timer *timer);
+TimerDisplay get_time_display(const Timer *timer);
 Timer* create_timer(
     int minutes,
     TimerMode timer_mode, 
