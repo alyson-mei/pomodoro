@@ -13,11 +13,11 @@
 
 typedef struct
 {
-    char header[BUF_SIZE_S];
-    char time[BUF_SIZE_XXS];
-    char progress_bar[BUF_SIZE_M];
-    char category[BUF_SIZE_M];
-    char controls[BUF_SIZE_M];
+    char header[HEADER_SIZE];
+    char time[TIME_SIZE];
+    char progress_bar[PROGRESS_BAR_SIZE];
+    char category_activity[CATEGORY_ACTIVITY_SIZE];
+    char controls[CONTROLS_SIZE];
     ColorCode border_color;
 } TimerScreenView;
 
@@ -142,7 +142,7 @@ void progress_bar_to_buf(
 
     *p = '\0';
 
-    char buf_percent[BUF_SIZE_XXS];
+    char buf_percent[BUF_PERCENT_SIZE];
     snprintf(buf_percent, sizeof buf_percent, " %3d%%", percent);
     strcat(p, buf_percent);
     
@@ -199,8 +199,8 @@ void timer_screen_build_view(
     );
 
     snprintf(
-        view->category,
-        sizeof view->category,
+        view->category_activity,
+        sizeof view->category_activity,
         "%s -> %s",
         state->timer->category,
         state->timer->subcategory
@@ -254,7 +254,7 @@ void box_render_line(
     printf("%s%s%s", color, border->left_char, UI_COLOR_RESET);
     
     // Truncate string if too long
-    char truncated[BUF_SIZE_L];
+    char truncated[GENERAL_SIZE];
     int str_len = strlen(str);
     
     if (str_len > width) {
@@ -385,7 +385,7 @@ void timer_screen_render(
         );
     }
     box_render_line(            // Category 
-        view->category, 
+        view->category_activity, 
         state->borders->mid, 
         state->screen_layout->width, 
         view->border_color,

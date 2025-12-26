@@ -28,14 +28,14 @@ static int parse_line(const char *line, char *key, char *value) {
 
     // Extract key
     size_t key_len = eq - line;
-    if (key_len >= KEY_CONFIG_MAX_SIZE) key_len = KEY_CONFIG_MAX_SIZE - 1;
+    if (key_len >= KEY_CONFIG_SIZE) key_len = KEY_CONFIG_SIZE - 1;
     strncpy(key, line, key_len);
     key[key_len] = '\0';
 
     // Extract value
     const char *val_start = eq + 1;
-    strncpy(value, val_start, STR_CONFIG_MAX_SIZE - 1);
-    value[STR_CONFIG_MAX_SIZE - 1] = '\0';
+    strncpy(value, val_start, STR_CONFIG_SIZE - 1);
+    value[STR_CONFIG_SIZE - 1] = '\0';
 
     // Trim both
     char *trimmed_key = trim(key);
@@ -53,13 +53,13 @@ typedef void (*section_handler)(const char *key, const char *value, void *data);
 // Generic section parser - calls handler for each key=value in a section
 static void parse_section(const char *str, const char *section_name, 
                          section_handler handler, void *data) {
-    char line[STR_CONFIG_MAX_SIZE];
+    char line[STR_CONFIG_SIZE];
     const char *ptr = str;
     int in_section = 0;
 
     while (*ptr != '\0') {
         int i = 0;
-        while (*ptr != '\n' && *ptr != '\0' && i < STR_CONFIG_MAX_SIZE - 1) {
+        while (*ptr != '\n' && *ptr != '\0' && i < STR_CONFIG_SIZE - 1) {
             line[i++] = *ptr++;
         }
         line[i] = '\0';
@@ -78,7 +78,7 @@ static void parse_section(const char *str, const char *section_name,
 
         if (!in_section) continue;
 
-        char key[KEY_CONFIG_MAX_SIZE], value[STR_CONFIG_MAX_SIZE];
+        char key[KEY_CONFIG_SIZE], value[STR_CONFIG_SIZE];
         if (parse_line(trimmed, key, value)) {
             handler(key, value, data);
         }
@@ -90,11 +90,11 @@ static void handle_activity(const char *key, const char *value, void *data) {
     ActivitySettings *settings = (ActivitySettings*)data;
     
     if (strcmp(key, "category") == 0) {
-        strncpy(settings->category, value, CATEGORY_MAX_SIZE - 1);
-        settings->category[CATEGORY_MAX_SIZE - 1] = '\0';
+        strncpy(settings->category, value, CATEGORY_SIZE - 1);
+        settings->category[CATEGORY_SIZE - 1] = '\0';
     } else if (strcmp(key, "activity") == 0) {
-        strncpy(settings->activity, value, ACTIVITY_MAX_SIZE - 1);
-        settings->activity[ACTIVITY_MAX_SIZE - 1] = '\0';
+        strncpy(settings->activity, value, ACTIVITY_SIZE - 1);
+        settings->activity[ACTIVITY_SIZE - 1] = '\0';
     }
 }
 
@@ -120,11 +120,11 @@ static void handle_ui(const char *key, const char *value, void *data) {
     UiSettings *settings = (UiSettings*)data;
     
     if (strcmp(key, "color_theme") == 0) {
-        strncpy(settings->color_theme, value, KEY_CONFIG_MAX_SIZE - 1);
-        settings->color_theme[KEY_CONFIG_MAX_SIZE - 1] = '\0';
+        strncpy(settings->color_theme, value, KEY_CONFIG_SIZE - 1);
+        settings->color_theme[KEY_CONFIG_SIZE - 1] = '\0';
     } else if (strcmp(key, "borders_type") == 0) {
-        strncpy(settings->borders_type, value, KEY_CONFIG_MAX_SIZE - 1);
-        settings->borders_type[KEY_CONFIG_MAX_SIZE - 1] = '\0';
+        strncpy(settings->borders_type, value, KEY_CONFIG_SIZE - 1);
+        settings->borders_type[KEY_CONFIG_SIZE - 1] = '\0';
     }
 }
 
