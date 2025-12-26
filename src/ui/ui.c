@@ -11,7 +11,7 @@
 
 
 
-const char* ui_color_code(UiColor c) {
+const char* ui_color_code(ColorCode c) {
     switch (c) {
         case UI_COLOR_RED:           return "\x1b[31m";
         case UI_COLOR_GREEN:         return "\x1b[32m";

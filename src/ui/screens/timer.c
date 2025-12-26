@@ -18,7 +18,7 @@ typedef struct
     char progress_bar[BUF_SIZE_M];
     char category[BUF_SIZE_M];
     char controls[BUF_SIZE_M];
-    UiColor border_color;
+    ColorCode border_color;
 } TimerScreenView;
 
 // Timer screen specific display functions
@@ -244,7 +244,7 @@ void box_render_line(
     const char *str,
     const Border *border,
     int width,
-    UiColor border_color,
+    ColorCode border_color,
     int padding_horizontal,
     int paint_content         // 0 = don't color content, 1 = color content
 ) {

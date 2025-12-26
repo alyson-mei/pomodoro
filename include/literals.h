@@ -10,26 +10,29 @@
 #define TIMER_BREAK      "BREAK"
 #define TIMER_LONG_BREAK "LONG BREAK"
 
-
 #define CONTROLS_ACTIVE     "[Space] Pause    [Q] Quit"
 #define CONTROLS_PAUSED     "[Space] Resume   [Q] Quit"
 #define CONTROLS_COMPLETED  "[Enter] Continue [Q] Quit" 
 #define CONTROLS_CANCELLED  "     [Enter/Q]   Quit    "
 
+#define RED           "\x1b[31m"
+#define GREEN         "\x1b[32m"
+#define YELLOW        "\x1b[33m"
+#define BLUE          "\x1b[34m"
+#define MAGENTA       "\x1b[35m"
+#define CYAN          "\x1b[36m"
+#define GRAY          "\x1b[90m"
 
-// #define UI_COLOR_RED             "\x1b[31m"
-// #define UI_COLOR_GREEN           "\x1b[32m"
-// #define UI_COLOR_YELLOW          "\x1b[33m"
-// #define UI_COLOR_BLUE            "\x1b[34m"
-// #define UI_COLOR_MAGENTA         "\x1b[35m"
-// #define UI_COLOR_CYAN            "\x1b[36m"
-// #define UI_COLOR_GRAY            "\x1b[90m"
+#define SOFT_CYAN     "\x1b[38;5;80m"
+#define SOFT_PURPLE   "\x1b[38;5;141m"
+#define SOFT_RED      "\x1b[38;5;203m"
+#define SOFT_GREEN    "\x1b[38;5;114m"
+#define NEON_PINK     "\x1b[38;5;213m"
+#define ELECTRIC_BLUE "\x1b[38;5;81m"
 
-// #define UI_COLOR_SOFT_CYAN:      "\x1b[38;5;80m"  
-// #define UI_COLOR_SOFT_PURPLE:    "\x1b[38;5;141m"
-// #define UI_COLOR_SOFT_RED:       "\x1b[38;5;203m"
-// #define UI_COLOR_SOFT_GREEN:     "\x1b[38;5;114m"
-// #define UI_COLOR_NEON_PINK:      "\x1b[38;5;213m"
-// #define UI_COLOR_ELECTRIC_BLUE   "\x1b[38;5;81m"
+#define RESET_COLOR   "\x1b[0m"
+
+#define UI_COLOR_RESET "\x1b[0m"
+
 
 #endif

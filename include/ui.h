@@ -6,19 +6,13 @@
 #include "global.h"
 #include "timer.h"
 
-#define UI_COLOR_RESET "\x1b[0m"
-
 typedef enum {
     THEME_MINIMAL,
     THEME_SIMPLE,
-    THEME_CYBERPUNK
-} UiColorTheme;
-
-typedef enum {
-    BORDER_MINIMAL,
-    BORDER_SINGLE,
-    BORDER_DOUBLE
-} UiBorderTheme;
+    THEME_CYBERPUNK,
+    THEME_FOREST,
+    THEME_SUNSET
+} ColorTheme;
 
 typedef enum {
     UI_COLOR_DEFAULT,
@@ -30,13 +24,27 @@ typedef enum {
     UI_COLOR_CYAN,
     UI_COLOR_GRAY,
 
-    UI_COLOR_SOFT_CYAN,      // Gentle cyan for running
-    UI_COLOR_SOFT_PURPLE,    // Soft purple for paused
-    UI_COLOR_SOFT_RED,       // Soft red for cancelled
-    UI_COLOR_SOFT_GREEN,     // Soft green for completed
-    UI_COLOR_NEON_PINK,      // Cyberpunk accent
-    UI_COLOR_ELECTRIC_BLUE   // Cyberpunk accent
-} UiColor;
+    UI_COLOR_SOFT_CYAN,
+    UI_COLOR_SOFT_PURPLE,
+    UI_COLOR_SOFT_RED,
+    UI_COLOR_SOFT_GREEN,
+    UI_COLOR_NEON_PINK,
+    UI_COLOR_ELECTRIC_BLUE
+} ColorCode;
+
+typedef struct {
+    const char* active;
+    const char* paused;
+    const char* completed;
+    const char* cancelled;
+} Colors;
+
+
+typedef enum {
+    BORDER_MINIMAL,
+    BORDER_SINGLE,
+    BORDER_DOUBLE
+} BorderType;
 
 typedef struct {
     const char *left_char;
@@ -50,6 +58,8 @@ typedef struct {
     const Border *mid_bottom;
     const Border *bottom;
 } BoxBorders;
+
+
 
 typedef struct
 {
@@ -71,7 +81,11 @@ typedef struct {
     int total_iterations;
 } TimerScreenState;
 
-const char* ui_color_code(UiColor c);
+
+const BoxBorders* get_borders(BorderType type);
+
+const char* ui_color_code(ColorCode c);
+
 void pomodoro_render(
     const Timer *t,
     int current_iteration,
