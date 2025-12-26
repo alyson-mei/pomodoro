@@ -15,6 +15,22 @@
 #define CONTROLS_COMPLETED  "[Enter] Continue [Q] Quit" 
 #define CONTROLS_CANCELLED  "     [Enter/Q]   Quit    "
 
+// Color themes
+
+#define CT_MINIMAL    "MINIMAl"
+#define CT_SIMPLE     "SIMPLE"
+#define CT_CYBERPUNK  "CYBERPUNK"
+#define CT_FOREST     "FOREST"
+#define CT_SUNSET     "SUNSET"
+
+// Border types
+
+#define BT_MINIMAL    "MINIMAL"
+#define BT_SINGLE     "SINGLE"
+#define BT_DOUBLE     "DOUBLE"   
+
+// Colors
+
 #define RED           "\x1b[31m"
 #define GREEN         "\x1b[32m"
 #define YELLOW        "\x1b[33m"

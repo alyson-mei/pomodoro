@@ -2,6 +2,8 @@
 #define CONFIG_H
 
 #include "global.h"
+#include "literals.h"
+#include "ui.h"
 
 typedef struct {
     char category[CATEGORY_SIZE];
@@ -17,8 +19,8 @@ typedef struct {
 } CountdownSettings;
 
 typedef struct {
-    char color_theme[KEY_CONFIG_SIZE];
-    char borders_type[KEY_CONFIG_SIZE];
+    ColorTheme color_theme;
+    BorderType border_type;
 } UiSettings;
 
 typedef struct {

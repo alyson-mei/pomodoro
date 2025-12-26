@@ -85,6 +85,23 @@ static void parse_section(const char *str, const char *section_name,
     }
 }
 
+// Helpers
+
+static ColorTheme get_color_theme(const char *str) {
+    if      (strcmp(str, CT_MINIMAL)   == 0) return THEME_MINIMAL;
+    else if (strcmp(str, CT_SIMPLE)    == 0) return THEME_SIMPLE;
+    else if (strcmp(str, CT_CYBERPUNK) == 0) return THEME_CYBERPUNK;
+    else if (strcmp(str, CT_FOREST)    == 0) return THEME_FOREST;
+    else if (strcmp(str, CT_SUNSET)    == 0) return THEME_SUNSET;
+    else                                     return THEME_MINIMAL;
+}
+
+static BorderType get_border_type(const char *str) {
+    if      (strcmp(str, BT_MINIMAL)   == 0) return BORDER_MINIMAL;
+    else if (strcmp(str, BT_SINGLE)    == 0) return BORDER_SINGLE;
+    else if (strcmp(str, BT_DOUBLE)    == 0) return BORDER_DOUBLE;
+    else                                     return BORDER_MINIMAL;
+}
 // Handler for [activity] section
 static void handle_activity(const char *key, const char *value, void *data) {
     ActivitySettings *settings = (ActivitySettings*)data;
@@ -120,11 +137,9 @@ static void handle_ui(const char *key, const char *value, void *data) {
     UiSettings *settings = (UiSettings*)data;
     
     if (strcmp(key, "color_theme") == 0) {
-        strncpy(settings->color_theme, value, KEY_CONFIG_SIZE - 1);
-        settings->color_theme[KEY_CONFIG_SIZE - 1] = '\0';
+        settings->color_theme = get_color_theme(value);
     } else if (strcmp(key, "borders_type") == 0) {
-        strncpy(settings->borders_type, value, KEY_CONFIG_SIZE - 1);
-        settings->borders_type[KEY_CONFIG_SIZE - 1] = '\0';
+        settings->border_type = get_border_type(value);
     }
 }
 
@@ -221,8 +236,8 @@ void test_file_loading() {
     printf("  Sessions: %d\n\n", settings->countdown.num_sessions);
 
     printf("[UI]\n");
-    printf("  Theme: %s\n", settings->ui.color_theme);
-    printf("  Borders: %s\n", settings->ui.borders_type);
+    printf("  Theme: %d\n", settings->ui.color_theme);
+    printf("  Borders: %d\n", settings->ui.border_type);
 
     free_config(settings);
 }

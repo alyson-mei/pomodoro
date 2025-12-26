@@ -100,7 +100,13 @@ TimerDisplay get_time_display(const Timer *timer) {
     if (timer->timer_mode == MODE_STOPWATCH) {
         display_ms = elapsed_ms;
     } else {
+        // Countdown mode
         display_ms = timer->target_ms - elapsed_ms;
+        
+        // If completed, ensure we show 00:00 (not negative or leftover time)
+        if (timer->timer_state == STATE_COMPLETED) {
+            display_ms = 0;
+        }
     }
 
     TimerDisplay td;

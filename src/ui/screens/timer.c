@@ -102,6 +102,10 @@ int calculate_progress(const Timer *t) {
     if (!t || t->target_ms <= 0)
         return 100;
 
+    // Always show 100% when completed
+    if (t->timer_state == STATE_COMPLETED)
+        return 100;
+
     int64_t elapsed = get_elapsed_ms(t);
 
     if (elapsed <= 0)
@@ -111,6 +115,7 @@ int calculate_progress(const Timer *t) {
 
     return (int)((elapsed * 100) / t->target_ms);
 }
+
 
 static char* repeat_string(char *buf, const char *ch, int count) {
     for (int i = 0; i < count; i++) {
@@ -154,7 +159,7 @@ void progress_bar_to_buf(
     *p = '\0';
 
     char buf_percent[BUF_PERCENT_SIZE];
-    snprintf(buf_percent, sizeof buf_percent, "%3d%%", percent);
+    snprintf(buf_percent, sizeof buf_percent, " %3d%%", percent);
     strcat(p, buf_percent);
     
 }
@@ -256,8 +261,12 @@ void box_render_line(
     int paint_content         // 0 = don't color content, 1 = color content
 ) {
     
+    bool special_case = strcmp(border->left_char, "-") == 0 && strcmp(border->right_char, "-") == 0;
+
     // Print left border in color
+    if (!special_case)
     printf("%s%s%s", color, border->left_char, UI_COLOR_RESET);
+    else printf(" ");
     
     // Truncate string if too long
     char truncated[GENERAL_SIZE];
@@ -290,7 +299,9 @@ void box_render_line(
     }
     
     // Print right border in color
+    if (!special_case)
     printf("%s%s%s\n", color, border->right_char, UI_COLOR_RESET);
+    else printf(" \n");
 }
 
 

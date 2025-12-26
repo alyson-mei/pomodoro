@@ -6,7 +6,7 @@
 #include "global.h"
 #include "timer.h"
 
-#define WIDTH                   40
+#define WIDTH                   50
 #define PADDING_HORIZONTAL      8
 #define PADDING_HEADER_VERT     1
 #define MARGIN_AFTER_HEADER     3
@@ -23,24 +23,6 @@ typedef enum {
     THEME_FOREST,
     THEME_SUNSET
 } ColorTheme;
-
-typedef enum {
-    UI_COLOR_DEFAULT,
-    UI_COLOR_RED,
-    UI_COLOR_GREEN,
-    UI_COLOR_YELLOW,
-    UI_COLOR_BLUE,
-    UI_COLOR_MAGENTA,
-    UI_COLOR_CYAN,
-    UI_COLOR_GRAY,
-
-    UI_COLOR_SOFT_CYAN,
-    UI_COLOR_SOFT_PURPLE,
-    UI_COLOR_SOFT_RED,
-    UI_COLOR_SOFT_GREEN,
-    UI_COLOR_NEON_PINK,
-    UI_COLOR_ELECTRIC_BLUE
-} ColorCode;
 
 typedef struct {
     const char* active;
