@@ -6,6 +6,16 @@
 #include "global.h"
 #include "timer.h"
 
+#define WIDTH                   40
+#define PADDING_HORIZONTAL      8
+#define PADDING_HEADER_VERT     1
+#define MARGIN_AFTER_HEADER     3
+#define MARGIN_AFTER_TIME       1
+#define MARGIN_AFTER_CATEGORY   3
+#define MARGIN_AFTER_CONTROLS   1
+
+// Colors
+
 typedef enum {
     THEME_MINIMAL,
     THEME_SIMPLE,
@@ -39,6 +49,7 @@ typedef struct {
     const char* cancelled;
 } Colors;
 
+// Borders
 
 typedef enum {
     BORDER_MINIMAL,
@@ -59,13 +70,13 @@ typedef struct {
     const Border *bottom;
 } BoxBorders;
 
-
+// Layout, State and View
 
 typedef struct
 {
     int width;
     int padding_horizontal;
-    int padding_header_vert;    // FIX: UNUSED    
+    int padding_header_vert;   
     
     int margin_after_header;
     int margin_after_time;
@@ -73,23 +84,44 @@ typedef struct
     int margin_after_controls;
 } TimerScreenLayout;
 
+typedef struct
+{
+    char header[HEADER_SIZE];
+    char time[TIME_SIZE];
+    char progress_bar[PROGRESS_BAR_SIZE];
+    char category_activity[CATEGORY_ACTIVITY_SIZE];
+    char controls[CONTROLS_SIZE];
+    char border_color[COLOR_SIZE];
+} TimerScreenView;
+
 typedef struct {
-    TimerScreenLayout *screen_layout;
+    const TimerScreenLayout *screen_layout;
+    const Timer *timer;
     const BoxBorders *borders;
-    Timer *timer;
+    const Colors *colors;
     int current_iteration;
     int total_iterations;
 } TimerScreenState;
 
 
 const BoxBorders* get_borders(BorderType type);
+const Colors* get_colors(ColorTheme theme);
 
-const char* ui_color_code(ColorCode c);
-
-void pomodoro_render(
-    const Timer *t,
+void render_ui(
+    const Timer *timer,
+    const ColorTheme color_theme,
+    const BorderType border_type,
     int current_iteration,
     int total_iterations
+);
+
+void timer_screen_build_view(
+    TimerScreenState *state,
+    TimerScreenView *view
+);
+void timer_screen_render(
+    TimerScreenState *state,
+    TimerScreenView *view
 );
 
 #endif

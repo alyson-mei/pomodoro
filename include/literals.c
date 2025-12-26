@@ -2,10 +2,10 @@
 #include "ui.h"
 
 static const Border minimal_borders[4] = {
-    {" -", "-", "- "},
+    {"-", "-", "-"},
     {"|",  " ",  "|"},
     {"|",  "-",  "|"},
-    {" -", "-", "- "}
+    {"-", "-", "-"}
 };
 
 static const Border single_borders[4] = {

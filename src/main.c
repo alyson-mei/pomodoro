@@ -6,6 +6,7 @@
 
 #include "../include/timer.h"
 #include "../include/ui.h"
+#include "../include/literals.h"
 #include "../include/global.h"
 
 // Setup non-blocking input
@@ -63,12 +64,24 @@ int main(void) {
         // Check if timer finished
         is_finished_timer(timer);
         
-        pomodoro_render(timer, 1, 4);
+        render_ui(
+            timer, 
+            THEME_CYBERPUNK,
+            BORDER_DOUBLE,
+            1, 
+            4
+        );
         usleep(50000);
     }
 
     
-    pomodoro_render(timer, 1, 4);
+    render_ui(
+        timer, 
+        THEME_CYBERPUNK,
+        BORDER_DOUBLE,
+        1, 
+        4
+    );
     
     restore_terminal(&old_tio);
     printf("\033[?25h"); // restore cursor

@@ -3,33 +3,45 @@
 #include <stdlib.h>
 #include <stdint.h>
 
-#include "../../include/timer.h"
 #include "../../include/ui.h"
+#include "../../include/timer.h"
 #include "../../include/global.h"
 #include "../../include/literals.h"
 
+void render_ui(
+    const Timer *timer,
+    const ColorTheme color_theme,
+    const BorderType border_type,
+    int current_iteration,
+    int total_iterations
+) {    
+    
+    const BoxBorders* borders = get_borders(border_type);
+    const Colors* colors = get_colors(color_theme);
 
+    TimerScreenLayout screen_layout = {
+        .width = WIDTH,
+        .padding_horizontal = PADDING_HORIZONTAL,
+        .padding_header_vert = PADDING_HEADER_VERT,
 
+        .margin_after_header = MARGIN_AFTER_HEADER,
+        .margin_after_time = MARGIN_AFTER_TIME,
+        .margin_after_category = MARGIN_AFTER_CATEGORY,
+        .margin_after_controls = MARGIN_AFTER_CONTROLS
+    };
 
-const char* ui_color_code(ColorCode c) {
-    switch (c) {
-        case UI_COLOR_RED:           return "\x1b[31m";
-        case UI_COLOR_GREEN:         return "\x1b[32m";
-        case UI_COLOR_YELLOW:        return "\x1b[33m";
-        case UI_COLOR_BLUE:          return "\x1b[34m";
-        case UI_COLOR_MAGENTA:       return "\x1b[35m";
-        case UI_COLOR_CYAN:          return "\x1b[36m";
-        case UI_COLOR_GRAY:          return "\x1b[90m";
-        
-        // Gentler cyberpunk colors (using 256-color mode)
-        case UI_COLOR_SOFT_CYAN:     return "\x1b[38;5;80m";   // Soft cyan-blue
-        case UI_COLOR_SOFT_PURPLE:   return "\x1b[38;5;141m";  // Soft purple/lavender
-        case UI_COLOR_SOFT_RED:      return "\x1b[38;5;203m";  // Soft coral red
-        case UI_COLOR_SOFT_GREEN:    return "\x1b[38;5;114m";  // Soft mint green
-        case UI_COLOR_NEON_PINK:     return "\x1b[38;5;213m";  // Neon pink
-        case UI_COLOR_ELECTRIC_BLUE: return "\x1b[38;5;81m";   // Electric blue
-        
-        case UI_COLOR_DEFAULT:
-        default:                     return "\x1b[0m";
-    }
+    TimerScreenState state = {
+        .screen_layout = &screen_layout,
+        .borders = borders,
+        .colors = colors,
+        .timer = timer,
+        .current_iteration = current_iteration,
+        .total_iterations = total_iterations
+    };
+
+    TimerScreenView view;
+
+    timer_screen_build_view(&state, &view);
+    timer_screen_render(&state, &view);
+
 }

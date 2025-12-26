@@ -9,18 +9,6 @@
 #include "../../../include/literals.h"
 
 
-// Timer screen specific structs
-
-typedef struct
-{
-    char header[HEADER_SIZE];
-    char time[TIME_SIZE];
-    char progress_bar[PROGRESS_BAR_SIZE];
-    char category_activity[CATEGORY_ACTIVITY_SIZE];
-    char controls[CONTROLS_SIZE];
-    ColorCode border_color;
-} TimerScreenView;
-
 // Timer screen specific display functions
 
 void set_header(
@@ -85,6 +73,29 @@ void set_controls(
     }
 }
 
+void set_color(
+    char* color,
+    const Colors *colors,
+    TimerState state) {
+    switch (state) {
+        case STATE_ACTIVE:          
+            sprintf(color, colors->active);
+            break;
+        case STATE_PAUSED:          
+            sprintf(color, colors->paused);
+            break;
+        case STATE_COMPLETED:       
+            sprintf(color, colors->completed);
+            break;
+        case STATE_CANCELLED:
+            sprintf(color, colors->cancelled);
+            break;
+        default:
+            sprintf(color, colors->active);
+            break;
+    }
+}
+
 // Helper functions
 
 int calculate_progress(const Timer *t) {
@@ -143,7 +154,7 @@ void progress_bar_to_buf(
     *p = '\0';
 
     char buf_percent[BUF_PERCENT_SIZE];
-    snprintf(buf_percent, sizeof buf_percent, " %3d%%", percent);
+    snprintf(buf_percent, sizeof buf_percent, "%3d%%", percent);
     strcat(p, buf_percent);
     
 }
@@ -198,13 +209,19 @@ void timer_screen_build_view(
         state->screen_layout->width / 2
     );
 
-    snprintf(
+    int written = snprintf(                     //TODO: FIX TRUNCATION, SIZE LOGIC
         view->category_activity,
         sizeof view->category_activity,
         "%s -> %s",
         state->timer->category,
         state->timer->subcategory
     );
+
+    // Optionally handle truncation
+    if (written >= (int)(sizeof view->category_activity)) {
+        // String was truncated, maybe add "..." at the end
+        strcpy(view->category_activity + sizeof(view->category_activity) - 4, "...");
+    }
 
     set_header(
         view->header,
@@ -215,26 +232,16 @@ void timer_screen_build_view(
         state->total_iterations                         
     );
 
-    set_controls(view->controls, state->timer->timer_state);
+    set_controls(
+        view->controls, 
+        state->timer->timer_state
+    );
 
-    switch (state->timer->timer_state)
-    {
-    case STATE_ACTIVE:
-        view->border_color = UI_COLOR_SOFT_CYAN;
-        break;
-    case STATE_PAUSED:
-        view->border_color = UI_COLOR_SOFT_PURPLE;
-        break;
-    case STATE_COMPLETED:
-        view->border_color = UI_COLOR_SOFT_GREEN;
-        break;
-    case STATE_CANCELLED:
-        view->border_color = UI_COLOR_SOFT_RED;
-        break;
-    default:
-        view->border_color = UI_COLOR_SOFT_CYAN;
-        break;
-    }
+    set_color(
+        view->border_color,
+        state->colors, 
+        state->timer->timer_state
+    );
 
 }
 
@@ -244,11 +251,10 @@ void box_render_line(
     const char *str,
     const Border *border,
     int width,
-    ColorCode border_color,
+    const char* color,
     int padding_horizontal,
     int paint_content         // 0 = don't color content, 1 = color content
 ) {
-    const char *color = ui_color_code(border_color);
     
     // Print left border in color
     printf("%s%s%s", color, border->left_char, UI_COLOR_RESET);
@@ -432,47 +438,4 @@ void timer_screen_render(
         state->screen_layout->padding_horizontal,
         1
     );
-}
-
-void pomodoro_render(
-    const Timer *timer,
-    int current_iteration,
-    int total_iterations
-) {              // We will get rid of this function later
-    const Border top_border     = {"╔", "═", "╗"};
-    const Border mid_border     = {"║", " ", "║"};
-    const Border midb_border    = {"╠", "═", "╣"};
-    const Border bottom_border  = {"╚", "═", "╝"};
-
-    const BoxBorders borders = {
-        .top        = &top_border,
-        .mid        = &mid_border,
-        .mid_bottom = &midb_border,
-        .bottom     = &bottom_border
-    };
-
-    TimerScreenLayout screen_layout = {
-        .width = 40,
-        .padding_horizontal = 8,
-        .padding_header_vert = 1,
-
-        .margin_after_header = 3,
-        .margin_after_time = 1,
-        .margin_after_category = 3,
-        .margin_after_controls = 1
-    };
-
-    TimerScreenState content = {
-        .screen_layout = &screen_layout,
-        .borders = &borders,
-        .timer = timer,
-        .current_iteration = current_iteration,
-        .total_iterations = total_iterations
-    };
-
-    TimerScreenView view;
-
-    timer_screen_build_view(&content, &view);
-    timer_screen_render(&content, &view);
-
 }
