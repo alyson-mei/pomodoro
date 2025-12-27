@@ -5,6 +5,9 @@
 #include <stdbool.h>
 #include <time.h>
 
+#include <sys/stat.h>
+#include <errno.h>
+
 #include "../../include/global.h"
 #include "../../include/data.h"
 #include "../../include/timer.h"
@@ -176,9 +179,19 @@ void delete_temp_entry(void) {
     remove("data/.temp_entry");
 }
 
+// Create data directory if it doesn't exist
+static void ensure_data_directory(void) {
+    struct stat st = {0};
+    if (stat("data", &st) == -1) {
+        mkdir("data", 0755);
+    }
+}
+
 // Append entry to history file (assigns ID)
 bool append_to_history(HistoryEntry *entry) {
-    // Read last ID from file or generate
+    ensure_data_directory();
+    
+    // Read last ID from file or start at 1
     uint32_t next_id = 1;
     FILE *f = fopen("data/history.dat", "rb");
     if (f) {
@@ -193,7 +206,7 @@ bool append_to_history(HistoryEntry *entry) {
     // Assign ID and append
     entry->id = next_id;
     
-    f = fopen("data/history.dat", "ab");
+    f = fopen("data/history.dat", "ab");  // 'a' creates if doesn't exist
     if (!f) return false;
     
     size_t written = fwrite(entry, sizeof(HistoryEntry), 1, f);
