@@ -71,7 +71,7 @@ typedef struct
     char header[HEADER_SIZE];
     char time[TIME_SIZE];
     char progress_bar[PROGRESS_BAR_SIZE];
-    char category_activity[CATEGORY_ACTIVITY_SIZE];
+    char category_activity[CAT_ACT_SIZE];
     char controls[CONTROLS_SIZE];
     char border_color[COLOR_SIZE];
 } TimerScreenView;

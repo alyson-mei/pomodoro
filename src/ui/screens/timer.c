@@ -219,7 +219,7 @@ void timer_screen_build_view(
         sizeof view->category_activity,
         "%s -> %s",
         state->timer->category,
-        state->timer->subcategory
+        state->timer->activity
     );
 
     // Optionally handle truncation
@@ -269,7 +269,7 @@ void box_render_line(
     else printf(" ");
     
     // Truncate string if too long
-    char truncated[GENERAL_SIZE];
+    char truncated[COMMON_STR_SIZE];
     int str_len = strlen(str);
     
     if (str_len > width) {

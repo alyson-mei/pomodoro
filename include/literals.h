@@ -3,12 +3,13 @@
 
 #define TIMER_COUNTDOWN   "COUNTDOWN"
 #define TIMER_STOPWATCH   "STOPWATCH"
-#define TIMER_CANCELLED   "CANCELLED"
 
 #define TIMER_WORK       "WORK"
-#define TIMER_PAUSE      "PAUSE"
 #define TIMER_BREAK      "BREAK"
 #define TIMER_LONG_BREAK "LONG BREAK"
+
+#define TIMER_PAUSE      "PAUSE"
+#define TIMER_CANCELLED   "CANCELLED"
 
 #define CONTROLS_ACTIVE     "[Space] Pause    [Q] Quit"
 #define CONTROLS_PAUSED     "[Space] Resume   [Q] Quit"

@@ -3,24 +3,19 @@
 #include <stdlib.h>
 #include <stdint.h>
 
-#include "../include/global.h"
+#include "../../include/global.h"
+#include "../../include/data.h"
 
-#define BUF_SIZE 256
-#define MAX_CATEGORIES 64
-#define MAX_SUBCATEGORIES 64
 
-#define DAYS_IN_A_MOTHS 30.44 // approx
-#define PROGRESS_YAML_PATH "../progress.yaml"
-#define PROGRESS_BIN_PATH "../data/progress.bin"
 
 typedef struct {
-    char name[BUF_SIZE_L];
+    char name[ACTIVITY_SIZE];
     int64_t total_ms;
-} Subcategory;
+} Activity;
 
 typedef struct {
-    char name[BUF_SIZE_L];
-    Subcategory subs[MAX_SUBCATEGORIES];
+    char name[CATEGORY_SIZE];
+    Activity activities[MAX_ACTIVITIES];
     size_t count;
     int64_t total_ms;
 } Category;
@@ -45,7 +40,7 @@ char *format_duration_ms(int64_t ms, char *buf, size_t bufsize, int truncate_zer
     int64_t total_days = total_hours / 24;
     int days = total_days % 30;
 
-    int64_t total_months = total_days / 30.44;   
+    int64_t total_months = total_days / DAYS_IN_A_MONTHS;   
     int months = total_months % 12;
 
     int years  = total_months / 12;
@@ -75,7 +70,7 @@ void add_time(
 
     // 1) Find or create category
     for (i = 0; i < list->count; i++) {
-        if (strncmp(list->categories[i].name, category_name, BUF_SIZE_L) == 0)
+        if (strncmp(list->categories[i].name, category_name, CATEGORY_SIZE) == 0)
             break;
     }
 
@@ -86,27 +81,27 @@ void add_time(
         // new category
         if (list->count >= MAX_CATEGORIES) return; // max categories reached
         cat = &list->categories[list->count++];
-        strncpy(cat->name, category_name, BUF_SIZE_L-1);
-        cat->name[BUF_SIZE_L-1] = '\0';
+        strncpy(cat->name, category_name, CATEGORY_SIZE-1);
+        cat->name[CATEGORY_SIZE-1] = '\0';
         cat->count = 0;
         cat->total_ms = 0;
     }
 
-    // 2) Find or create subcategory
+    // 2) Find or create activity
     for (j = 0; j < cat->count; j++) {
-        if (strncmp(cat->subs[j].name, sub_name, BUF_SIZE_L) == 0)
+        if (strncmp(cat->activities[j].name, sub_name, ACTIVITY_SIZE) == 0)
             break;
     }
 
-    Subcategory *sub;
+    Activity *sub;
     if (j < cat->count) {
-        sub = &cat->subs[j];
+        sub = &cat->activities[j];
     } else {
-        // new subcategory
-        if (cat->count >= MAX_SUBCATEGORIES) return; // max subcategories reached
-        sub = &cat->subs[cat->count++];
-        strncpy(sub->name, sub_name, BUF_SIZE_L-1);
-        sub->name[BUF_SIZE_L-1] = '\0';
+        // new activity
+        if (cat->count >= MAX_ACTIVITIES) return; // max subcategories reached
+        sub = &cat->activities[cat->count++];
+        strncpy(sub->name, sub_name, ACTIVITY_SIZE-1);
+        sub->name[ACTIVITY_SIZE-1] = '\0';
         sub->total_ms = 0;
     }
 
@@ -151,12 +146,12 @@ void write_yaml(const CategoryList *list, const char *path) {
 
     for (size_t i = 0; i < list->count; i++) {
         const Category *cat = &list->categories[i];
-        format_duration_ms(cat->total_ms, buf, BUF_SIZE_L, 1);
+        format_duration_ms(cat->total_ms, buf, CATEGORY_SIZE, 1);
         fprintf(f, "%s:\n    total: %s\n", cat->name, buf);
 
         for (size_t j = 0; j < cat->count; j++) {
-            const Subcategory *sub = &cat->subs[j];
-            format_duration_ms(sub->total_ms, buf, BUF_SIZE_L, 1);
+            const Activity *sub = &cat->activities[j];
+            format_duration_ms(sub->total_ms, buf, ACTIVITY_SIZE, 1);
             fprintf(f, "    - %s: %s\n", sub->name, buf);
         }
     }

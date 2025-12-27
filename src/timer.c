@@ -32,7 +32,7 @@ Timer* create_timer(
     TimerMode timer_mode, 
     TimerWorkMode timer_mode_work,
     const char *category,
-    const char *subcategory
+    const char *activity
 ) {
     Timer *timer = malloc(sizeof(Timer)); 
     if (!timer) return NULL;
@@ -48,8 +48,8 @@ Timer* create_timer(
     
     strncpy(timer->category, category, sizeof timer->category - 1);
     timer->category[sizeof timer->category - 1] = '\0';
-    strncpy(timer->subcategory, subcategory, sizeof timer->subcategory - 1);
-    timer->subcategory[sizeof timer->subcategory - 1] = '\0';
+    strncpy(timer->activity, activity, sizeof timer->activity - 1);
+    timer->activity[sizeof timer->activity - 1] = '\0';
 
     return timer;
 }

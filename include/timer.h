@@ -37,8 +37,8 @@ typedef struct {
     TimerMode timer_mode;
     TimerWorkMode timer_work_mode;
     TimerState timer_state;
-    char category[BUF_SIZE_L];
-    char subcategory[BUF_SIZE_L];
+    char category[CATEGORY_SIZE];
+    char activity[ACTIVITY_SIZE];
 } Timer;
 
 int64_t get_current_ms(void);
@@ -50,7 +50,7 @@ Timer* create_timer(
     TimerMode timer_mode, 
     TimerWorkMode timer_mode_work,
     const char *category,
-    const char *subcategory
+    const char *activity
 );
 
 void start_timer(Timer *timer);
