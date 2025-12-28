@@ -2,184 +2,118 @@
 #include <string.h>
 #include <stdlib.h>
 #include <stdint.h>
+#include <stdbool.h>
+#include <time.h>
+
+#include <sys/stat.h>
+#include <errno.h>
 
 #include "../../include/global.h"
 #include "../../include/data.h"
+#include "../../include/timer.h"
+#include "../../include/literals.h"
 
+// Helpers
 
-
-typedef struct {
-    char name[ACTIVITY_SIZE];
-    int64_t total_ms;
-} Activity;
-
-typedef struct {
-    char name[CATEGORY_SIZE];
-    Activity activities[MAX_ACTIVITIES];
-    size_t count;
-    int64_t total_ms;
-} Category;
-
-typedef struct internal
-{
-    Category categories[MAX_CATEGORIES];
-    size_t count;
-    int64_t total_ms;
-} CategoryList;
-
-char *format_duration_ms(int64_t ms, char *buf, size_t bufsize, int truncate_zero) {
-    int64_t total_seconds = ms / 1000;
-    int seconds = total_seconds % 60;
-
-    int64_t total_minutes = total_seconds / 60;
-    int minutes = total_minutes % 60;
-
-    int64_t total_hours = total_minutes / 60;
-    int hours = total_hours % 24;
-
-    int64_t total_days = total_hours / 24;
-    int days = total_days % 30;
-
-    int64_t total_months = total_days / DAYS_IN_A_MONTHS;   
-    int months = total_months % 12;
-
-    int years  = total_months / 12;
-
-    // Format string, skipping zero units if requested
-    size_t len = 0;
-
-    if (!truncate_zero || years)  len += snprintf(buf + len, bufsize - len, "%dy ", years);
-    if (!truncate_zero || months) len += snprintf(buf + len, bufsize - len, "%dmo ", months);
-    if (!truncate_zero || days)   len += snprintf(buf + len, bufsize - len, "%dd ", days);
-    if (!truncate_zero || hours)  len += snprintf(buf + len, bufsize - len, "%dh ", hours);
-    if (!truncate_zero || minutes)len += snprintf(buf + len, bufsize - len, "%dm ", minutes);
-    if (!truncate_zero || seconds)len += snprintf(buf + len, bufsize - len, "%ds", seconds);
-
-    // Remove trailing space
-    if (len > 0 && buf[len-1] == ' ') buf[len-1] = '\0';
-
-    return buf;
+const char* timer_mode_to_string(TimerMode mode) {
+    switch (mode) {
+        case MODE_COUNTDOWN: return TIMER_COUNTDOWN;
+        case MODE_STOPWATCH: return TIMER_STOPWATCH;
+        default: return "UNKNOWN";
+    }
 }
 
-void add_time(
-    CategoryList *list,
-    const char *category_name,
-    const char *sub_name,
-    int64_t ms) {
-    size_t i, j;
+const char* timer_work_mode_to_string(TimerWorkMode work_mode) {
+    switch (work_mode) {
+        case MODE_WORK: return TIMER_WORK;
+        case MODE_BREAK: return TIMER_BREAK;
+        case MODE_LONG_BREAK: return TIMER_LONG_BREAK;
+        default: return "UNKNOWN";
+    }
+}
 
-    // 1) Find or create category
-    for (i = 0; i < list->count; i++) {
-        if (strncmp(list->categories[i].name, category_name, CATEGORY_SIZE) == 0)
+static void csv_print_elapsed(FILE *out, int elapsed_seconds) {
+    int minutes = elapsed_seconds / 60;
+    int seconds = elapsed_seconds % 60;
+    fprintf(out, "%02d:%02d", minutes, seconds);
+}
+
+static void csv_print_string(FILE *out, const char *s) {
+    if (!s) {
+        fputs("", out);
+        return;
+    }
+
+    bool need_quotes = false;
+    for (const char *p = s; *p; ++p) {
+        if (*p == ',' || *p == '"' || *p == '\n') {
+            need_quotes = true;
             break;
-    }
-
-    Category *cat;
-    if (i < list->count) {
-        cat = &list->categories[i];
-    } else {
-        // new category
-        if (list->count >= MAX_CATEGORIES) return; // max categories reached
-        cat = &list->categories[list->count++];
-        strncpy(cat->name, category_name, CATEGORY_SIZE-1);
-        cat->name[CATEGORY_SIZE-1] = '\0';
-        cat->count = 0;
-        cat->total_ms = 0;
-    }
-
-    // 2) Find or create activity
-    for (j = 0; j < cat->count; j++) {
-        if (strncmp(cat->activities[j].name, sub_name, ACTIVITY_SIZE) == 0)
-            break;
-    }
-
-    Activity *sub;
-    if (j < cat->count) {
-        sub = &cat->activities[j];
-    } else {
-        // new activity
-        if (cat->count >= MAX_ACTIVITIES) return; // max subcategories reached
-        sub = &cat->activities[cat->count++];
-        strncpy(sub->name, sub_name, ACTIVITY_SIZE-1);
-        sub->name[ACTIVITY_SIZE-1] = '\0';
-        sub->total_ms = 0;
-    }
-
-    // 3) Update total
-    list->total_ms += ms;
-    cat->total_ms += ms;
-    sub->total_ms += ms;
-}
-
-int save_categories(const CategoryList *list, const char *path) {
-    FILE *f = fopen(path, "wb");
-    if (!f) return 0;
-
-    // Write the main structure
-    if (fwrite(list, sizeof(CategoryList), 1, f) != 1) {
-        fclose(f);
-        return 0;
-    }
-
-    fclose(f);
-    return 1;
-}
-
-int load_categories(CategoryList *list, const char *path) {
-    FILE *f = fopen(path, "rb");
-    if (!f) return 0;
-
-    if (fread(list, sizeof(CategoryList), 1, f) != 1) {
-        fclose(f);
-        return 0;
-    }
-
-    fclose(f);
-    return 1;
-}
-
-void write_yaml(const CategoryList *list, const char *path) {
-    char buf[BUF_SIZE_L];  // buffer for formatted durations
-
-    FILE *f = fopen(path, "w");
-    if (!f) return;
-
-    for (size_t i = 0; i < list->count; i++) {
-        const Category *cat = &list->categories[i];
-        format_duration_ms(cat->total_ms, buf, CATEGORY_SIZE, 1);
-        fprintf(f, "%s:\n    total: %s\n", cat->name, buf);
-
-        for (size_t j = 0; j < cat->count; j++) {
-            const Activity *sub = &cat->activities[j];
-            format_duration_ms(sub->total_ms, buf, ACTIVITY_SIZE, 1);
-            fprintf(f, "    - %s: %s\n", sub->name, buf);
         }
     }
 
-    fclose(f);
+    if (!need_quotes) {
+        fputs(s, out);
+        return;
+    }
+
+    fputc('"', out);
+    for (const char *p = s; *p; ++p) {
+        if (*p == '"') fputc('"', out); // escape quote
+        fputc(*p, out);
+    }
+    fputc('"', out);
+}
+
+// CSV export
+
+bool export_entries_csv(const char *entries_path, const char *csv_path) {
+    FILE *f_entries = fopen(entries_path, "rb");
+    if (!f_entries) {
+        perror("fopen entries");
+        return false;
+    }
+
+    FILE *f_csv = fopen(csv_path, "w");
+    if (!f_csv) {
+        perror("fopen csv");
+        fclose(f_entries);
+        return false;
+    }
+
+    // CSV header (skip timestamp and active)
+    fprintf(f_csv,
+        "uuid,date,time,mode,work_mode,elapsed_seconds,completed,category,activity,message\n"
+    );
+
+    HistoryEntry entry;
+    while (read_entry(f_entries, &entry)) {
+        fprintf(f_csv, "%llu,", (unsigned long long)entry.uuid);
+        fprintf(f_csv, "%s,%s,", entry.date, entry.time);
+        fprintf(f_csv, "%s,%s,",
+            timer_mode_to_string(entry.mode),
+            timer_work_mode_to_string(entry.work_mode));
+        csv_print_elapsed(f_csv, entry.elapsed_seconds);
+        fprintf(f_csv, ",%u,", entry.completed);
+
+        csv_print_string(f_csv, entry.category); fputc(',', f_csv);
+        csv_print_string(f_csv, entry.activity); fputc(',', f_csv);
+        csv_print_string(f_csv, entry.message); fputc('\n', f_csv);
+
+        // free allocated strings
+        free(entry.category);
+        free(entry.activity);
+        free(entry.message);
+    }
+
+    fclose(f_entries);
+    fclose(f_csv);
+    return true;
 }
 
 int main() {
-    CategoryList list = {0}; // initialize empty list
-    
-    if (!load_categories(&list, PROGRESS_BIN_PATH)) {
-        printf("No previous data found, starting fresh.\n");
+    if (!export_entries_csv("src/experimental/exp_data.dat", "history.csv")) {
+        fprintf(stderr, "Failed to export CSV\n");
     }
-
-    // Add some times
-    add_time(&list, "Work", "Coding", 3600*1000);       // 1 hour
-    add_time(&list, "Work", "Emails", 1800*1000);       // 30 min
-    add_time(&list, "Hobby", "Painting", 7200*1000);    // 2 hours
-    add_time(&list, "Work", "Coding", 5400*1000);       // add 1.5 hours more
-
-
-    if (!save_categories(&list, PROGRESS_BIN_PATH)) {
-        printf("Error saving categories!\n");
-    }
-
-    // Write YAML file
-    write_yaml(&list, PROGRESS_YAML_PATH);
-
     return 0;
 }
-
