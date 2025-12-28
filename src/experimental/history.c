@@ -41,7 +41,7 @@ void get_current_date(char *date_str, size_t size) {
     );
 }
 
-void update_entry_duration(
+void set_entry_duration(
     HistoryEntry *entry,
     const Timer *timer
 ) {
@@ -106,38 +106,33 @@ HistoryEntry create_history_entry(
     entry.activity = timer->activity ? strdup(timer->activity) : NULL;
     entry.comment  = comment ? strdup(comment) : NULL;
 
-    update_entry_duration(&entry, timer);
+    set_entry_duration(&entry, timer);
 
     return entry;
 }
 
+bool write_entry(FILE *f, const HistoryEntry *entry) {
+    if (fwrite(&entry->id, sizeof(entry->id), 1, f) != 1)
+        return false;
+    if (fwrite(entry->date, sizeof(entry->date), 1, f) != 1)
+        return false;
+    if (fwrite(&entry->mode, sizeof(entry->mode), 1, f) != 1)
+        return false;
+    if (fwrite(&entry->work_mode, sizeof(entry->work_mode), 1, f) != 1)
+        return false;
+    if (fwrite(&entry->duration_seconds, sizeof(entry->duration_seconds), 1, f) != 1)
+        return false;
+    if (fwrite(&entry->completed, sizeof(entry->completed), 1, f) != 1)
+        return false;
 
-bool save_entry(
-    const HistoryEntry *entry,
-    const char *path,
-    const char *mode
-) {
-    bool ok = false;
-    FILE *f = fopen(path, mode);
-    if (!f) return false;
+    if (!write_string(f, entry->category))
+        return false;
+    if (!write_string(f, entry->activity))
+        return false;
+    if (!write_string(f, entry->comment))
+        return false;
 
-    do {
-        if (fwrite(&entry->id, sizeof(entry->id), 1, f) != 1) break;
-        if (fwrite(entry->date, sizeof(entry->date), 1, f) != 1) break;
-        if (fwrite(&entry->mode, sizeof(entry->mode), 1, f) != 1) break;
-        if (fwrite(&entry->work_mode, sizeof(entry->work_mode), 1, f) != 1) break;
-        if (fwrite(&entry->duration_seconds, sizeof(entry->duration_seconds), 1, f) != 1) break;
-        if (fwrite(&entry->completed, sizeof(entry->completed), 1, f) != 1) break;
-
-        if (!write_string(f, entry->category)) break;
-        if (!write_string(f, entry->activity)) break;
-        if (!write_string(f, entry->comment)) break;
-
-        ok = true;
-    } while (0);
-
-    fclose(f);
-    return ok;
+    return true;
 }
 
 bool read_entry(FILE *f, HistoryEntry *entry) {
@@ -164,29 +159,99 @@ bool read_entry(FILE *f, HistoryEntry *entry) {
 
 }
 
+bool write_entry_index(FILE *entries, FILE *index, HistoryEntry *entry) {
+    if (fseek(index, 0, SEEK_END) != 0) return false;
+    long index_pos = ftell(index);
+    if (index_pos < 0) return false;
+    
+    entry->id = (uint32_t)(index_pos / sizeof(uint64_t));
+
+    if (fseek(entries, 0, SEEK_END) != 0) return false;
+    long data_pos = ftell(entries);
+    if (data_pos < 0) return false;
+    
+    uint64_t offset = (uint64_t)data_pos;
+
+    if (!write_entry(entries, entry)) return false;
+    if (fwrite(&offset, sizeof(offset), 1, index) != 1) return false;
+
+    return true;
+}
+
+bool build_index(
+    const char *entries_path,
+    const char *index_path
+) {
+    FILE *entries = fopen(entries_path, "rb");
+    if (!entries) return false;
+
+    FILE *index = fopen(index_path, "wb");
+    if (!index) {
+        fclose(entries);
+        return false;
+    }
+
+    HistoryEntry entry;
+    while (1) {
+        long offset = ftell(entries);
+        if (offset < 0) break;
+
+        if (!read_entry(entries, &entry)) break;
+
+        uint64_t uoffset = (uint64_t)offset;
+        if (fwrite(&uoffset, sizeof(uoffset), 1, index) != 1) {
+            fclose(entries);
+            fclose(index);
+            return false;
+        }
+
+        // Free strings if read_entry allocated them
+        free(entry.category);
+        free(entry.activity);
+        free(entry.comment);
+    }
+
+    fclose(entries);
+    fclose(index);
+    return true;
+}
+
 int main() {
-    // Timer* timer = create_timer(
-    //     10,
-    //     MODE_COUNTDOWN,
-    //     MODE_WORK,
-    //     "category",
-    //     "activity"
-    // );
-    // start_timer(timer);
+    Timer* timer = create_timer(
+        10,
+        MODE_COUNTDOWN,
+        MODE_WORK,
+        "category",
+        "activity"
+    );
+    start_timer(timer);
+    HistoryEntry entry = create_history_entry(timer, "comment");
 
-    // HistoryEntry entry = create_history_entry(timer, "comment");
-    // save_entry(&entry, "exp_data.dat", "ab");
-
-
-    FILE *f = fopen("exp_data.dat", "rb");
-    if (!f) {
+    FILE *f_entries = fopen("src/experimental/exp_data.dat", "ab");
+    if (!f_entries) {
         perror("fopen");
         return 1;
     }
 
-    HistoryEntry entry;
+    FILE *f_index = fopen("src/experimental/exp_data.idx", "ab");
+    if (!f_index) {
+        perror("fopen");
+        return 1;
+    }
 
-    while (read_entry(f, &entry)) {
+    //write_entry_index(f_entries, f_index, &entry);
+
+    // build_index("src/experimental/exp_data.dat", "src/experimental/exp_data.idx");
+
+    FILE *f_entries_r = fopen("src/experimental/exp_data.dat", "rb");
+    if (!f_entries_r) {
+        perror("fopen");
+        return 1;
+    }
+
+    // HistoryEntry entry;
+
+    while (read_entry(f_entries_r, &entry)) {
         printf(
             "id=%u date=%s cat=%s act=%s comment=%s dur=%d completed=%d\n",
             entry.id,
@@ -204,6 +269,7 @@ int main() {
     }
 
 
-    fclose(f);
+    fclose(f_entries_r);
+    fclose(f_index);
     return 0;
 }

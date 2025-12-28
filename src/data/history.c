@@ -100,7 +100,7 @@ HistoryEntry create_history_entry(
 }
 
 // Update an existing entry's duration (for periodic saves)
-void update_entry_duration(HistoryEntry *entry, const Timer *timer) {
+void set_entry_duration(HistoryEntry *entry, const Timer *timer) {
     int64_t elapsed_ms = get_elapsed_ms(timer);
     entry->duration_seconds = (int)(elapsed_ms / 1000);
     entry->completed = (timer->timer_state == STATE_COMPLETED);
