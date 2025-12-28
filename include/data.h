@@ -30,7 +30,29 @@ typedef struct {
     char* message;
 } HistoryEntry;
 
-bool read_entry(FILE *f, HistoryEntry *entry);
+bool read_entry(
+    FILE *f,
+    HistoryEntry *entry
+);
+HistoryEntry create_history_entry(
+    const Timer *timer,
+    const char *message
+);
+bool write_entry(
+    FILE *f, 
+    const HistoryEntry *entry
+);
+
+bool write_entry_index(
+    FILE *entries,
+    FILE *index,
+    HistoryEntry *entry
+);
+
+void set_entry_elapsed_completed(
+    HistoryEntry *entry,
+    const Timer *timer
+);
 
 
 #endif
