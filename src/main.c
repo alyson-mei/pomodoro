@@ -5,11 +5,12 @@
 #include <termios.h>
 #include <fcntl.h>
 
+#include "../include/global.h"
 #include "../include/timer.h"
 #include "../include/ui.h"
 #include "../include/config.h"
 #include "../include/literals.h"
-#include "../include/global.h"
+#include "../include/data.h"
 
 // Setup non-blocking input
 void setup_terminal(struct termios *old_tio) {

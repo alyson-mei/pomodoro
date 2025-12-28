@@ -99,7 +99,7 @@ static bool read_string(
     return true;
 }
 
-// Create, save and read
+// CRUD
 
 HistoryEntry create_history_entry(
     const Timer *timer,
@@ -122,6 +122,38 @@ HistoryEntry create_history_entry(
 
     return entry;
 }
+
+bool read_entry(FILE *f, HistoryEntry *entry) {
+    memset(entry, 0, sizeof(*entry));
+
+    if (fread(&entry->uuid, sizeof(entry->uuid), 1, f) != 1) 
+        return false;
+    if (fread(entry->date, sizeof(entry->date), 1, f) != 1) 
+        return false;
+    if (fread(entry->time, sizeof(entry->time), 1, f) != 1) 
+        return false;
+    if (fread(&entry->timestamp, sizeof(entry->timestamp), 1, f) != 1) 
+        return false;
+
+    if (fread(&entry->mode, sizeof(entry->mode), 1, f) != 1) 
+        return false;
+    if (fread(&entry->work_mode, sizeof(entry->work_mode), 1, f) != 1) 
+        return false;
+
+    if (fread(&entry->elapsed_seconds, sizeof(entry->elapsed_seconds), 1, f) != 1) 
+        return false;
+    if (fread(&entry->completed, sizeof(entry->completed), 1, f) != 1)
+        return false;
+    if (fread(&entry->active, sizeof(entry->active), 1, f) != 1)
+        return false;
+
+    if (!read_string(f, &entry->category)) return false;
+    if (!read_string(f, &entry->activity)) return false;
+    if (!read_string(f, &entry->message))  return false;
+
+    return true;       
+}
+
 
 bool write_entry(
     FILE *f, 
@@ -156,37 +188,6 @@ bool write_entry(
         return false;
 
     return true;
-}
-
-bool read_entry(FILE *f, HistoryEntry *entry) {
-    memset(entry, 0, sizeof(*entry));
-
-    if (fread(&entry->uuid, sizeof(entry->uuid), 1, f) != 1) 
-        return false;
-    if (fread(entry->date, sizeof(entry->date), 1, f) != 1) 
-        return false;
-    if (fread(entry->time, sizeof(entry->time), 1, f) != 1) 
-        return false;
-    if (fread(&entry->timestamp, sizeof(entry->timestamp), 1, f) != 1) 
-        return false;
-
-    if (fread(&entry->mode, sizeof(entry->mode), 1, f) != 1) 
-        return false;
-    if (fread(&entry->work_mode, sizeof(entry->work_mode), 1, f) != 1) 
-        return false;
-
-    if (fread(&entry->elapsed_seconds, sizeof(entry->elapsed_seconds), 1, f) != 1) 
-        return false;
-    if (fread(&entry->completed, sizeof(entry->completed), 1, f) != 1)
-        return false;
-    if (fread(&entry->active, sizeof(entry->active), 1, f) != 1)
-        return false;
-
-    if (!read_string(f, &entry->category)) return false;
-    if (!read_string(f, &entry->activity)) return false;
-    if (!read_string(f, &entry->message))  return false;
-
-    return true;       
 }
 
 bool write_entry_index(
@@ -246,6 +247,16 @@ bool build_index(
     fclose(index);
     return true;
 }
+
+bool delete_entry_file(const char *path) {
+    if (remove(path) == 0) {
+        return true;
+    } else {
+        perror("delete_file");
+        return false;
+    }
+}
+
 
 
 
