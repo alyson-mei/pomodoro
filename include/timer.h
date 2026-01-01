@@ -18,6 +18,7 @@ typedef enum {
 } TimerWorkMode;
 
 typedef enum {
+    STATE_CREATED,
     STATE_ACTIVE,
     STATE_PAUSED,
     STATE_COMPLETED,

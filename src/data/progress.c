@@ -111,9 +111,9 @@ bool export_entries_csv(const char *entries_path, const char *csv_path) {
     return true;
 }
 
-int main() {
-    if (!export_entries_csv("data/entries.dat", "history.csv")) {
-        fprintf(stderr, "Failed to export CSV\n");
-    }
-    return 0;
-}
+// int main() {
+//     if (!export_entries_csv("data/entries.dat", "history.csv")) {
+//         fprintf(stderr, "Failed to export CSV\n");
+//     }
+//     return 0;
+// }

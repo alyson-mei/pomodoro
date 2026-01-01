@@ -20,7 +20,7 @@ int64_t get_current_ms(void) {
 int64_t get_elapsed_ms(const Timer *timer) {
     int64_t elapsed = timer->accumulated_ms;
 
-    if (timer->timer_state == STATE_ACTIVE && timer->started_at_ms > 0) {
+    if (timer->timer_state == STATE_ACTIVE) {
         elapsed += get_current_ms() - timer->started_at_ms;
     }
 
@@ -43,7 +43,7 @@ Timer* create_timer(
         .accumulated_ms = 0,
         .timer_mode     = timer_mode,
         .timer_work_mode = timer_mode_work,
-        .timer_state    = STATE_ACTIVE,
+        .timer_state    = STATE_CREATED,
     };    
     
     strncpy(timer->category, category, sizeof timer->category - 1);
@@ -75,26 +75,18 @@ void cancel_timer(Timer *timer) {
 bool is_finished_timer(Timer *timer) {
     if (timer->timer_mode != MODE_COUNTDOWN) return false;
 
-    int64_t now = get_current_ms();
-    int64_t elapsed = timer->accumulated_ms;
+    int64_t elapsed = get_elapsed_ms(timer);
 
-    if (timer->timer_state == STATE_ACTIVE)
-        elapsed += now - timer->started_at_ms;
-    
     if (elapsed >= timer->target_ms) {
         timer->timer_state = STATE_COMPLETED;
         return true;
-    }
-    else 
+    } else {
         return false;
+    }
 }
 
 TimerDisplay get_time_display(const Timer *timer) {
-    int64_t now_ms = get_current_ms();
-    int64_t elapsed_ms = timer->accumulated_ms;
-    if (timer->timer_state == STATE_ACTIVE) {
-        elapsed_ms += now_ms - timer->started_at_ms;
-    }
+    int64_t elapsed_ms = get_elapsed_ms(timer);
 
     int64_t display_ms;
     if (timer->timer_mode == MODE_STOPWATCH) {
@@ -102,19 +94,19 @@ TimerDisplay get_time_display(const Timer *timer) {
     } else {
         // Countdown mode
         display_ms = timer->target_ms - elapsed_ms;
-        
-        // If completed, ensure we show 00:00 (not negative or leftover time)
+
+        // Ensure 00:00 after completion
         if (timer->timer_state == STATE_COMPLETED) {
             display_ms = 0;
         }
     }
 
-    TimerDisplay td;
+    TimerDisplay time_display;
     int64_t ms = display_ms < 0 ? 0 : display_ms;
 
-    td.centiseconds = (ms / 10) % 100;
-    td.seconds = (ms / 1000) % 60;
-    td.minutes = ms / (1000 * 60);
+    time_display.centiseconds = (ms / 10) % 100;
+    time_display.seconds      = (ms / 1000) % 60;
+    time_display.minutes      = ms / (1000 * 60);
 
-    return td;
+    return time_display;
 }

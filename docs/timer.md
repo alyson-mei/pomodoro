@@ -1,5 +1,8 @@
 # Documentation for the timer module
 
+## Dependencies
+
+- `#define _GNU_SOURCE` - enables GNU extensions and exposes newer POSIX APIs on glibc systems, including `clock_gettime()`
 ## Logic
 
 ### Time Tracking Model 
@@ -7,85 +10,56 @@
 The timer uses a **start-accumulate-pause-resume** pattern: 
 - `started_at_ms` records when the timer last started/resumed 
 - `accumulated_ms` stores total elapsed time from previous run segments 
-- Current elapsed time = `accumulated_ms + (now - started_at_ms)` (when active) 
+- Elapsed time:
+  ```
+  Current elapsed time =
+    accumulated_ms +
+    (now - started_at_ms)   if timer_state == STATE_ACTIVE
+  ```
 
-### Calculation Flow 
+### The Workflow 
 
-**On Start:** 
-- Record current timestamp in `started_at_ms` 
-- `accumulated_ms` remains 0 
+**On Create:**
+1. Call `Timer* create_timer(int minutes, TimerMode timer_mode, TimerWorkMode timer_mode_work, const char *category, const char *activity)`
+2. Allocates memory for the timer and initializes its fields, including copying the `category` and `activity` strings. The initial state is set to `STATE_CREATED`, with `started_at_ms = 0` (the timer is treated as not running)
+3. Returns the pointer to created timer
+
+**On Start / Resume:** 
+1. Call `void start_timer(Timer *timer)`
+2. Record current timestamp in `started_at_ms`: 
+   `timer->started_at_ms = get_current_ms();`
+3. Transition to `STATE_ACTIVE`
 
 **On Pause:** 
-- Add elapsed segment: `accumulated_ms += (now - started_at_ms)` 
-- Transition to `STATE_PAUSED` 
+1. Call `void pause_timer(Timer *timer)`
+2. Add elapsed segment: 
+   `timer->accumulated_ms += (get_current_ms() - timer->started_at_ms)` 
+3. Transition to `STATE_PAUSED` 
 
-**On Resume:** 
-- Update `started_at_ms` to current time (starts new segment) 
-- `accumulated_ms` preserves previous elapsed time 
-- Transition to `STATE_ACTIVE` 
+**On Cancel:**
+1. Call `void cancel_timer(Timer *timer)`
+2. Update `timer->accumulated_ms` if `timer->timer_state == STATE_ACTIVE`
+3. Set `timer->started_at_ms = 0` - timer is treated as not running
+4. Transition to `STATE_CANCELLED`
+
+**Is Finished:**
+1. Call `bool is_finished_timer(Timer *timer)`
+2. (Probably FIX) `MODE_STOPWATCH` => `false`
+3. `MODE_COUNTDOWN` =>
+	- Calculate elapsed time: 
+	  `elapsed = accumulated + (current - started_at) * (bool)(is_active)`
+	- `elapsed >= target` => transition to `STATE_COMPLETED`, `return true`
+	- `elapsed < target` => `return false` 
 
 **Display Time:** 
-- **Stopwatch**: shows `accumulated_ms + (now - started_at_ms)` 
-- **Countdown**: shows `target_ms - elapsed_ms` (remaining time) 
+1. Call `TimerDisplay get_time_display(const Timer *timer)`
+2. Calculate elapsed time:
+   `elapsed = accumulated + (current - started_at) * (bool)(is_active)`
+3. Calculate `display_ms`:
+	- `MODE_STOPWATCH` => `display_ms = elapsed_ms`
+	- `MODE_COUNTDOWN` => `display_ms = max(0, timer->target_ms - elapsed_ms)`
+4. Calculate values to display (minutes, seconds, centiseconds)
 
-## Dependencies
-
-- `#define _GNU_SOURCE` - this macro enables GNU extensions and newer [POSIX](https://en.wikipedia.org/wiki/POSIX) features. A dependency for `clock_gettime()`.
-- Everything else is standard.
-
-## Structures
-
-### `enum TimerMode`
-
-- Countdown or stopwatch mode.
-### `enum TimerState` 
-
-- Active, paused, completed, or cancelled.
-### `struct Timer`
-
-Represents a single timer instance.
-- `started_at_ms` — timestamp (ms) of the last start or resume.
-- `target_ms` — timestamp (ms) when the countdown completes (unused in stopwatch mode).
-- `accumulated_ms` — total elapsed time since the first start.
-- `timer_mode`, `timer_state`.
-- `category`, `subcategory` — labels for history tracking.
-
-### `struct TimeDisplay`
-
-- Holds the time values in minutes, seconds and centiseconds to display.
-
-## Functions
-
-### `int64_t get_current_ms(void)`
-
-Returns the current time in milliseconds using a monotonic clock.
-
-Relies on:
-- `struct timespec` — holds seconds (`tv_sec`) and nanoseconds (`tv_nsec`).
-- `clock_gettime` — POSIX function for retrieving high-resolution time; uses `CLOCK_MONOTONIC` to avoid issues with system clock adjustments.
-
-### `Timer *create_timer(int minutes, TimerMode mode, const char *category, const char *subcategory)`
-
-Allocates and initializes a new `Timer` instance.
-
-- Allocates memory for the timer and returns `NULL` on failure.    
-- Initializes time fields to zero.
-- Sets the timer mode and target duration (`minutes` → milliseconds).
-- Copies `category` and `subcategory` strings with guaranteed null-termination.
-
-Returns a pointer to the created `Timer`, or `NULL` if allocation fails.
-
-### Controls:
-
-- `start_timer(Timer *timer)` - starts / resumes timer. Sets 
-  `timer->started_at_ms` to current time, `timer->timer_state` to `STATE_ACTIVE`
-- `pause_timer(Timer *timer)` - pauses timer. Updates `timer->accumulated_ms`, sets `timer->timer_state` to `STATE_PAUSED`.
-- `cancel_timer(Timer *timer)` - sets `timer->timer_state` to `STATE_CANCELLED`.
-
-### `bool is_finished_timer(Timer *timer)`
-
-Checks if the time countdown has completed, sets `timer->timer_state` to `STATE_COMPLETED` when complete.
-
-### `DisplayTime get_time_display(const Timer *timer)`
-
-Calculates and returns the time to display on the screen. 
+### Notes
+- Elapsed time is calculated using the helper function
+  `int64_t get_elapsed_ms(const Timer *timer)`
