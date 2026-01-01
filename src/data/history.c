@@ -112,7 +112,9 @@ HistoryEntry create_history_entry(
 
     entry.mode = timer->timer_mode;
     entry.work_mode = timer->timer_work_mode;
-    set_entry_elapsed_completed(&entry, timer);   //
+    // Don't set elapsed/completed here - it will be set later when timer finishes
+    entry.elapsed_seconds = 0;
+    entry.completed = 0;
     entry.active = 1;
 
     entry.category = timer->category ? strdup(timer->category) : NULL;
@@ -256,89 +258,3 @@ bool delete_entry_file(const char *path) {
         return false;
     }
 }
-
-
-
-
-
-// int main(void) {
-//     const char *entries_path = "src/experimental/exp_data.dat";
-//     const char *index_path   = "src/experimental/exp_data.idx";
-
-//     // --- clean start ---
-//     unlink(entries_path);
-//     unlink(index_path);
-
-//     // --- create timer ---
-//     Timer *timer = create_timer(
-//         10,
-//         MODE_COUNTDOWN,
-//         MODE_WORK,
-//         "category",
-//         "activity"
-//     );
-//     start_timer(timer);
-
-//     // --- open files ---
-//     FILE *f_entries = fopen(entries_path, "ab");
-//     if (!f_entries) {
-//         perror("fopen entries");
-//         return 1;
-//     }
-
-//     FILE *f_index = fopen(index_path, "ab");
-//     if (!f_index) {
-//         perror("fopen index");
-//         fclose(f_entries);
-//         return 1;
-//     }
-
-//     // --- write entries ---
-//     for (int i = 0; i < 3; i++) {
-//         HistoryEntry entry = create_history_entry(timer, "message");
-
-//         if (!write_entry_index(f_entries, f_index, &entry)) {
-//             fprintf(stderr, "write_entry_index failed\n");
-//             return 1;
-//         }
-
-//         // free owned strings
-//         free(entry.category);
-//         free(entry.activity);
-//         free(entry.message);
-//     }
-
-//     fclose(f_entries);
-//     fclose(f_index);
-
-//     // --- read back entries ---
-//     FILE *f_entries_r = fopen(entries_path, "rb");
-//     if (!f_entries_r) {
-//         perror("fopen read");
-//         return 1;
-//     }
-
-//     HistoryEntry entry;
-//     while (read_entry(f_entries_r, &entry)) {
-//         printf(
-//             "uuid=%llu date=%s time=%s cat=%s act=%s msg=%s dur=%d completed=%d active=%d\n",
-//             (unsigned long long)entry.uuid,
-//             entry.date,
-//             entry.time,
-//             entry.category ? entry.category : "(null)",
-//             entry.activity ? entry.activity : "(null)",
-//             entry.message ? entry.message : "(null)",
-//             entry.elapsed_seconds,
-//             entry.completed,
-//             entry.active
-//         );
-
-//         free(entry.category);
-//         free(entry.activity);
-//         free(entry.message);
-//     }
-
-//     fclose(f_entries_r);
-
-//     return 0;
-// }

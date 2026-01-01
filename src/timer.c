@@ -78,6 +78,11 @@ bool is_finished_timer(Timer *timer) {
     int64_t elapsed = get_elapsed_ms(timer);
 
     if (elapsed >= timer->target_ms) {
+        // Accumulate final time before marking as completed
+        if (timer->timer_state == STATE_ACTIVE) {
+            timer->accumulated_ms += get_current_ms() - timer->started_at_ms;
+            timer->started_at_ms = 0;
+        }
         timer->timer_state = STATE_COMPLETED;
         return true;
     } else {

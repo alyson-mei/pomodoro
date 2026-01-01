@@ -12,6 +12,7 @@ SRCS = \
 	src/config.c \
 	src/data/history.c \
 	src/data/progress.c \
+	src/data/management.c \
 	src/tui/ui.c \
 	src/tui/screens/timer.c \
 	src/tui/terminal/command.c \
@@ -20,11 +21,13 @@ SRCS = \
 # Output executable
 TARGET = timer
 
+.PHONY: all clean rebuild
+
 # Default target
 all: $(TARGET)
 
-# Build executable (single command, no .o files)
-$(TARGET):
+# Build executable (single command)
+$(TARGET): $(SRCS)
 	$(CC) $(CFLAGS) $(SRCS) -o $(TARGET)
 
 # Clean build

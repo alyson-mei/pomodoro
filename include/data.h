@@ -56,4 +56,12 @@ void set_entry_elapsed_completed(
 );
 
 
+bool export_entries_csv(const char *entries_path, const char *csv_path);
+
+void ensure_data_dir(void);
+bool save_temp_entry(const HistoryEntry *entry);
+bool load_temp_entry(HistoryEntry *entry);
+bool append_entry(HistoryEntry *entry);
+void check_crashed_session(void);
+
 #endif

@@ -17,17 +17,11 @@
 #include "../include/ui/command.h"
 #include "../include/ui/setup.h"
 
-#define DATA_DIR "data"
-#define ENTRIES_FILE "data/entries.dat"
-#define INDEX_FILE "data/entries.idx"
 #define TEMP_FILE "data/.temp_entry"
 
 
 // TODO:
 // - Short term:
-//      - Long break logic (e.g. should be 4-th instead of 5-th)
-//      - Bug in duration logic
-//      - Update CSV after each timer
 //      - Add a message after a session
 //      - Sessions logic (outer loop)
 // - Long term:
@@ -35,91 +29,6 @@
 //      - Edit entries
 
 // Ensure data directory exists
-static void ensure_data_dir(void) {
-    struct stat st = {0};
-    if (stat(DATA_DIR, &st) == -1) {
-        mkdir(DATA_DIR, 0755);
-    }
-}
-
-// Save temporary entry (for crash recovery)
-static bool save_temp_entry(const HistoryEntry *entry) {
-    FILE *f = fopen(TEMP_FILE, "wb");
-    if (!f) return false;
-    
-    bool ok = write_entry(f, entry);
-    fclose(f);
-    return ok;
-}
-
-// Load temporary entry
-static bool load_temp_entry(HistoryEntry *entry) {
-    FILE *f = fopen(TEMP_FILE, "rb");
-    if (!f) return false;
-    
-    bool ok = read_entry(f, entry);
-    fclose(f);
-    return ok;
-}
-
-// Append entry to history
-static bool append_entry(HistoryEntry *entry) {
-    FILE *f_entries = fopen(ENTRIES_FILE, "ab");
-    FILE *f_index = fopen(INDEX_FILE, "ab");
-    
-    if (!f_entries || !f_index) {
-        if (f_entries) fclose(f_entries);
-        if (f_index) fclose(f_index);
-        return false;
-    }
-    
-    bool ok = write_entry_index(f_entries, f_index, entry);
-    
-    fclose(f_entries);
-    fclose(f_index);
-    
-    return ok;
-}
-
-// Check for crashed session on startup
-static void check_crashed_session(void) {
-    HistoryEntry entry;
-    if (load_temp_entry(&entry)) {
-        printf("\n=== Recovered incomplete session ===\n");
-        printf("Date: %s %s\n", entry.date, entry.time);
-        printf("Activity: %s -> %s\n", 
-               entry.category ? entry.category : "N/A",
-               entry.activity ? entry.activity : "N/A");
-        printf("Duration: %d seconds (%s)\n", 
-               entry.elapsed_seconds,
-               entry.completed ? "completed" : "interrupted");
-        printf("\nSave to history? (y/n): ");
-        
-        char response;
-        scanf(" %c", &response);
-        
-        if (response == 'y' || response == 'Y') {
-            if (append_entry(&entry)) {
-                printf("Saved successfully.\n");
-            } else {
-                printf("Failed to save.\n");
-            }
-        }
-        
-        // Free allocated strings
-        free(entry.category);
-        free(entry.activity);
-        free(entry.message);
-        
-        // Remove temp file
-        remove(TEMP_FILE);
-        
-        printf("Press Enter to continue...");
-        while (getchar() != '\n');
-        getchar();
-    }
-}
-
 
 
 int main(void) {
@@ -128,7 +37,7 @@ int main(void) {
     ensure_data_dir();
     check_crashed_session();
 
-    Settings *settings = load_config("config.ini");
+    Settings *settings = load_config("./config.ini");
     if (!settings) {
         printf("Failed to load config\n");
         return 1;
@@ -145,27 +54,26 @@ int main(void) {
     // Track time for periodic saves (every 60 seconds)
     time_t last_save = 0;
 
-    for (int j = 0; j < settings->countdown.num_cycles * 2 + 1; j++) {
-        if (j < settings->countdown.num_cycles * 2) {
+    for (int j = 0; j < settings->countdown.num_cycles * 2; j++) {
+        cycle = j / 2 + 1;
+
+        if (j < settings->countdown.num_cycles * 2 - 1) {
             if (j % 2 == 0) {
                 work_mode = MODE_WORK;
-                duration = settings->countdown.work_minutes;  // Changed here
-                cycle = j / 2 + 1;
+                duration = settings->countdown.work_minutes;
             }
             else {
                 work_mode = MODE_BREAK;
-                duration = settings->countdown.break_minutes;  // Changed here
-                cycle = j / 2 + 1;
+                duration = settings->countdown.break_minutes;
             }
         }
         else {
             work_mode = MODE_LONG_BREAK;
-            duration = settings->countdown.long_break_minutes;  // Changed here
-            cycle = j / 2;
+            duration = settings->countdown.long_break_minutes;
         }
 
         Timer* timer = create_timer(
-            duration,  // Changed here
+            duration,
             MODE_COUNTDOWN,
             work_mode,
             settings->activity.category,
@@ -175,7 +83,6 @@ int main(void) {
 
         // Create history entry for this timer
         HistoryEntry entry = create_history_entry(timer, NULL);
-        save_temp_entry(&entry);
         last_save = time(NULL);
 
         start_timer(timer);
@@ -184,19 +91,27 @@ int main(void) {
                timer->timer_state != STATE_CANCELLED) {
             
             // Check for keyboard input
-            if (read(STDIN_FILENO, &c, 1) == 1) {
-                if (c == ' ') {
+            Command cmd = read_command();
+
+            switch (cmd) {
+                case CMD_TOGGLE_PAUSE:
                     if (timer->timer_state == STATE_PAUSED) {
                         start_timer(timer);
                     } else if (timer->timer_state == STATE_ACTIVE) {
                         pause_timer(timer);
                     }
-                } else if (c == 'q' || c == 'Q') {
+                    break;
+
+                case CMD_QUIT:
                     cancel_timer(timer);
                     
                     // Update entry before saving
                     set_entry_elapsed_completed(&entry, timer);
-                    save_temp_entry(&entry);
+                    
+                    // Only save temp if elapsed >= 60 seconds
+                    if (entry.elapsed_seconds >= 60) {
+                        save_temp_entry(&entry);
+                    }
                     
                     render_ui(
                         timer, 
@@ -214,8 +129,13 @@ int main(void) {
                     free(entry.message);
                     
                     goto cleanup;
-                }
+                    break;
+
+                case CMD_NONE:
+                default:
+                    break;
             }
+
             
             // Periodic save every 60 seconds
             time_t now = time(NULL);
@@ -245,12 +165,14 @@ int main(void) {
             settings->countdown.num_cycles
         );
 
-        // Update entry with final state
+        // Update entry with final state BEFORE saving
         set_entry_elapsed_completed(&entry, timer);
         
         // Append to history and remove temp
         if (append_entry(&entry)) {
             remove(TEMP_FILE);
+            // Export to CSV after each timer
+            export_entries_csv("data/entries.dat", "history.csv");
         }
         
         // Free entry strings
@@ -267,13 +189,13 @@ int main(void) {
             fcntl(STDIN_FILENO, F_SETFL, flags & ~O_NONBLOCK);
             
             while (1) {
-                if (read(STDIN_FILENO, &c, 1) == 1) {
-                    if (c == '\n' || c == '\r') {
-                        break;
-                    } else if (c == 'q' || c == 'Q') {
-                        free(timer);
-                        goto cleanup;
-                    }
+                Command cmd = read_command();
+
+                if (cmd == CMD_CONTINUE) {
+                    break;
+                } else if (cmd == CMD_QUIT) {
+                    free(timer);
+                    goto cleanup;
                 }
             }
             
