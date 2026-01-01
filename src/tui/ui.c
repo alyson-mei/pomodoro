@@ -3,7 +3,7 @@
 #include <stdlib.h>
 #include <stdint.h>
 
-#include "../../include/ui.h"
+#include "../../include/ui/ui.h"
 #include "../../include/timer.h"
 #include "../../include/global.h"
 #include "../../include/literals.h"

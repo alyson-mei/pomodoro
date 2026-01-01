@@ -4,7 +4,7 @@
 #include <stdint.h>
 
 #include "../../../include/timer.h"
-#include "../../../include/ui.h"
+#include "../../../include/ui/ui.h"
 #include "../../../include/global.h"
 #include "../../../include/literals.h"
 

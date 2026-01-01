@@ -1,6 +1,7 @@
 #ifndef DATA_H
 #define DATA_H
 
+#include <time.h>
 #include "timer.h"
 
 #define MAX_CATEGORIES 64

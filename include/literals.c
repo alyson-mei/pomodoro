@@ -1,5 +1,5 @@
 #include "literals.h"
-#include "ui.h"
+#include "ui/ui.h"
 
 static const Border minimal_borders[4] = {
     {"-", "-", "-"},

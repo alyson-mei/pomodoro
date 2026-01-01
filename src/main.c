@@ -9,10 +9,13 @@
 
 #include "../include/global.h"
 #include "../include/timer.h"
-#include "../include/ui.h"
 #include "../include/config.h"
 #include "../include/literals.h"
 #include "../include/data.h"
+
+#include "../include/ui/ui.h"
+#include "../include/ui/command.h"
+#include "../include/ui/setup.h"
 
 #define DATA_DIR "data"
 #define ENTRIES_FILE "data/entries.dat"
@@ -117,22 +120,7 @@ static void check_crashed_session(void) {
     }
 }
 
-// Setup non-blocking input
-void setup_terminal(struct termios *old_tio) {
-    struct termios new_tio;
-    
-    tcgetattr(STDIN_FILENO, old_tio);
-    new_tio = *old_tio;
-    
-    new_tio.c_lflag &= ~(ICANON | ECHO);
-    tcsetattr(STDIN_FILENO, TCSANOW, &new_tio);
-    
-    fcntl(STDIN_FILENO, F_SETFL, O_NONBLOCK);
-}
 
-void restore_terminal(struct termios *old_tio) {
-    tcsetattr(STDIN_FILENO, TCSANOW, old_tio);
-}
 
 int main(void) {
     setvbuf(stdout, NULL, _IONBF, 0);

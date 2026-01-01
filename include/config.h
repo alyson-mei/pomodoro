@@ -3,7 +3,7 @@
 
 #include "global.h"
 #include "literals.h"
-#include "ui.h"
+#include "ui/ui.h"
 
 typedef struct {
     char category[CATEGORY_SIZE];
