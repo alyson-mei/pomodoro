@@ -24,9 +24,14 @@
 // - Short term:
 //      - Add a message after a session
 //      - Sessions logic (outer loop)
+//      - Improve the STOPWATCH mode desging
 // - Long term:
 //      - Category and activity should be on different lines
 //      - Edit entries
+// Thoughts: 
+//      - Version for the database; maybe also some additional fields
+//          - e.g. some id for the session? Should think about it
+//      - Comments - add an option to left a message after each cycle? Or after each session?
 
 // Ensure data directory exists
 
@@ -74,7 +79,7 @@ int main(void) {
 
         Timer* timer = create_timer(
             duration,
-            MODE_COUNTDOWN,
+            MODE_STOPWATCH,
             work_mode,
             settings->activity.category,
             settings->activity.activity

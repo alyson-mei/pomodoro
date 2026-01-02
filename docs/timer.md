@@ -1,4 +1,4 @@
-# Documentation for the timer module
+# Timer module documentation
 
 ## Dependencies
 
@@ -48,7 +48,7 @@ The timer uses a **start-accumulate-pause-resume** pattern:
 3. `MODE_COUNTDOWN` =>
 	- Calculate elapsed time: 
 	  `elapsed = accumulated + (current - started_at) * (bool)(is_active)`
-	- `elapsed >= target` => transition to `STATE_COMPLETED`, `return true`
+	- `elapsed >= target` => accumulate the final time and set `timer->started_at_ms = 0` if active (?), transition to `STATE_COMPLETED`, `return true`
 	- `elapsed < target` => `return false` 
 
 **Display Time:** 

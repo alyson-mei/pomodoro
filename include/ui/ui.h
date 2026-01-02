@@ -2,6 +2,7 @@
 #define DISPLAY_H
 
 #include <stdint.h>
+#include <stdlib.h>
 #include <stdbool.h>
 #include "global.h"
 #include "timer.h"
@@ -71,7 +72,8 @@ typedef struct
     char header[HEADER_SIZE];
     char time[TIME_SIZE];
     char progress_bar[PROGRESS_BAR_SIZE];
-    char category_activity[CAT_ACT_SIZE];
+    char category[COMMON_STR_SIZE];
+    char activity[COMMON_STR_SIZE];
     char controls[CONTROLS_SIZE];
     char border_color[COLOR_SIZE];
 } TimerScreenView;
@@ -101,9 +103,63 @@ void timer_screen_build_view(
     TimerScreenState *state,
     TimerScreenView *view
 );
-void timer_screen_render(
+void timer_screen_balanced_render(
     TimerScreenState *state,
     TimerScreenView *view
+);
+
+
+// TODO: refactor this later!
+
+
+void set_header(
+    char *header,
+    TimerMode mode, 
+    TimerWorkMode work_mode,
+    TimerState state,
+    int current_iteration,
+    int total_iterations
+);
+void set_controls(
+    char* controls,
+    TimerState state
+);
+void set_color(
+    char* color,
+    const Colors *colors,
+    TimerState state
+);
+
+int calculate_progress(const Timer *t);
+char* repeat_string(
+    char *buf,
+    const char *ch, 
+    int count
+);
+
+void format_progress_bar(
+    char *buf,
+    size_t buf_size,
+    int percent,
+    int width
+);
+
+
+
+void box_line_to_buf(
+    char *buf,
+    const char *str,
+    const Border *border,
+    int width
+);
+
+void box_render_line(
+    const char *str,
+    const Border *border,
+    int width,
+    const char* color,
+    int padding_horizontal,
+    int paint_content         // 0 = don't color content, 1 = color content
 );
 
 #endif
