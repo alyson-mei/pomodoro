@@ -12,8 +12,11 @@
 #define PROGRESS_YAML_PATH "../progress.yaml"
 #define PROGRESS_BIN_PATH "../data/progress.bin"
 
+#define ENTRY_VERSION 1
 
 typedef struct {
+    uint8_t version;
+
     uint64_t uuid;              
     time_t timestamp;
     char date[11];              // "YYYY-MM-DD"

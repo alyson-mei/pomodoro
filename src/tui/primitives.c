@@ -11,10 +11,12 @@
 
 // Helper
 char* repeat_string(char *buf, const char *ch, int count) {
+    size_t ch_len = strlen(ch);  // Cache this!
     for (int i = 0; i < count; i++) {
-        strcpy(buf, ch);
-        buf += strlen(ch); 
+        memcpy(buf, ch, ch_len);  // memcpy faster than strcpy
+        buf += ch_len;
     }
+    *buf = '\0';  // Null terminate
     return buf;
 }
 

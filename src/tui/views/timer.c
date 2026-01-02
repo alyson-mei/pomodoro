@@ -132,6 +132,9 @@ void format_progress_bar(
         buf[0] = '\0';
         return;
     }
+
+    memset(p, ' ', 5);  // Add padding spaces
+
     p += 5;
     size_t remaining = buf_size - 1; // leave space for '\0'
 

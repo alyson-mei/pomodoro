@@ -108,6 +108,7 @@ HistoryEntry create_history_entry(
     HistoryEntry entry = {0};
 
     entry.uuid = 0;
+    entry.version = ENTRY_VERSION;
     set_entry_time(&entry);
 
     entry.mode = timer->timer_mode;
@@ -127,6 +128,10 @@ HistoryEntry create_history_entry(
 
 bool read_entry(FILE *f, HistoryEntry *entry) {
     memset(entry, 0, sizeof(*entry));
+
+    if (fread(&entry->version, sizeof(entry->version), 1, f) != 1)
+        return false;
+    if (entry->version != 1) return false;
 
     if (fread(&entry->uuid, sizeof(entry->uuid), 1, f) != 1) 
         return false;
@@ -161,6 +166,9 @@ bool write_entry(
     FILE *f, 
     const HistoryEntry *entry
 ) {
+    if (fwrite(&entry -> version, sizeof(entry->version), 1, f) != 1)
+        return false;
+
     if (fwrite(&entry->uuid, sizeof(entry->uuid), 1, f) != 1)
         return false;
     if (fwrite(entry->date, sizeof(entry->date), 1, f) != 1)

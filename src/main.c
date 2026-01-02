@@ -26,6 +26,7 @@
 //      - Sessions logic (outer loop)
 //      - Improve the STOPWATCH mode desging
 // - Long term:
+//      - Performance improvement (hoisting)
 //      - Category and activity should be on different lines
 //      - Edit entries
 // Thoughts: 
