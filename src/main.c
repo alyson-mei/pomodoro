@@ -62,8 +62,9 @@ int main(void) {
             .margin_after_category = MARGIN_AFTER_CATEGORY,
             .margin_after_controls = MARGIN_AFTER_CONTROLS
         },
-        .borders = get_borders(settings->ui.border_type),
+        .borders = get_borders(settings->ui.border_theme),
         .colors = get_colors(settings->ui.color_theme),
+        .progress_bar = get_progress_bar(settings->ui.progress_theme),
         .category = category_with_comma,
         .activity = settings->activity.activity
     };

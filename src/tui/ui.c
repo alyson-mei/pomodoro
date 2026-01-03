@@ -44,12 +44,8 @@ void timer_screen_build_view(
         state->total_iterations                         
     );
 
-
-
     view->border_color = get_state_color(state->colors, state->timer->timer_state);
     view->controls = get_controls_text(state->timer->timer_state);
-
-
 }
 
 

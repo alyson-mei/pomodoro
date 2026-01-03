@@ -28,7 +28,12 @@
 
 #define BT_MINIMAL    "MINIMAL"
 #define BT_SINGLE     "SINGLE"
-#define BT_DOUBLE     "DOUBLE"   
+#define BT_DOUBLE     "DOUBLE" 
+
+// Progress bar themes
+#define PT_MINIMAL    "MINIMAL"
+#define PT_SIMPLE     "SIMPLE"
+#define PT_STANDARD   "STANDARD"
 
 // Colors
 

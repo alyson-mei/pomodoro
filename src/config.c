@@ -96,12 +96,20 @@ static ColorTheme get_color_theme(const char *str) {
     else                                     return THEME_MINIMAL;
 }
 
-static BorderType get_border_type(const char *str) {
+static BorderTheme get_border_type(const char *str) {
     if      (strcmp(str, BT_MINIMAL)   == 0) return BORDER_MINIMAL;
     else if (strcmp(str, BT_SINGLE)    == 0) return BORDER_SINGLE;
     else if (strcmp(str, BT_DOUBLE)    == 0) return BORDER_DOUBLE;
     else                                     return BORDER_MINIMAL;
 }
+
+static ProgressTheme get_progress_theme(const char *str) {
+    if      (strcmp(str, PT_MINIMAL)   == 0) return PB_THEME_MINIMAL;
+    else if (strcmp(str, PT_SIMPLE)    == 0) return PB_THEME_SIMPLE;
+    else if (strcmp(str, PT_STANDARD)  == 0) return PB_THEME_STANDARD;
+    else                                     return PB_THEME_MINIMAL;
+}
+
 // Handler for [activity] section
 static void handle_activity(const char *key, const char *value, void *data) {
     ActivitySettings *settings = (ActivitySettings*)data;
@@ -114,6 +122,7 @@ static void handle_activity(const char *key, const char *value, void *data) {
         settings->activity[ACTIVITY_SIZE - 1] = '\0';
     }
 }
+
 
 // Handler for [countdown] section
 static void handle_countdown(const char *key, const char *value, void *data) {
@@ -139,7 +148,9 @@ static void handle_ui(const char *key, const char *value, void *data) {
     if (strcmp(key, "color_theme") == 0) {
         settings->color_theme = get_color_theme(value);
     } else if (strcmp(key, "borders_type") == 0) {
-        settings->border_type = get_border_type(value);
+        settings->border_theme = get_border_type(value);
+    } else if (strcmp(key, "progress_theme") == 0) {
+        settings->progress_theme = get_progress_theme(value);
     }
 }
 
@@ -237,7 +248,7 @@ void test_file_loading() {
 
     printf("[UI]\n");
     printf("  Theme: %d\n", settings->ui.color_theme);
-    printf("  Borders: %d\n", settings->ui.border_type);
+    printf("  Borders: %d\n", settings->ui.border_theme);
 
     free_config(settings);
 }

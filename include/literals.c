@@ -22,7 +22,26 @@ static const Border double_borders[4] = {
     {"╚", "═", "╝"}
 };
 
-const BoxBorders* get_borders(BorderType type) {
+static const ProgressBar minimal_bar = {
+    .left_char = "",
+    .mid_char_off = ".",
+    .mid_char_on = "#" ,
+    .right_char = ""
+};
+static const ProgressBar simple_bar = {
+    .left_char = "[",
+    .mid_char_off = " ",
+    .mid_char_on = "=" ,
+    .right_char = "]"
+};
+static const ProgressBar standard_bar = {
+    .left_char = "",
+    .mid_char_off = "░",
+    .mid_char_on = "█" ,
+    .right_char = ""
+};
+
+const BoxBorders* get_borders(BorderTheme type) {
     static const BoxBorders border_sets[] = {
         [BORDER_MINIMAL] = {
             .top = &minimal_borders[0],
@@ -80,4 +99,13 @@ const Colors* get_colors(ColorTheme theme) {
         }
     };
     return &colors[theme];
+}
+
+const ProgressBar* get_progress_bar(ProgressTheme theme) {
+    switch (theme) {
+        case PB_THEME_MINIMAL:     return &minimal_bar;
+        case PB_THEME_SIMPLE:      return &simple_bar;
+        case PB_THEME_STANDARD:    return &standard_bar;
+        default:                return &minimal_bar;
+    }
 }

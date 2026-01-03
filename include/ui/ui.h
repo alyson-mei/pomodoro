@@ -38,7 +38,7 @@ typedef enum {
     BORDER_MINIMAL,
     BORDER_SINGLE,
     BORDER_DOUBLE
-} BorderType;
+} BorderTheme;
 
 typedef struct {
     const char *left_char;
@@ -52,6 +52,21 @@ typedef struct {
     const Border *mid_bottom;
     const Border *bottom;
 } BoxBorders;
+
+// Progress Bar
+
+typedef enum {
+    PB_THEME_MINIMAL,
+    PB_THEME_SIMPLE,
+    PB_THEME_STANDARD
+} ProgressTheme;
+
+typedef struct {
+    const char *left_char;
+    const char *mid_char_off;
+    const char *mid_char_on;
+    const char *right_char;
+} ProgressBar;
 
 // Layout, State and View
 
@@ -93,13 +108,14 @@ typedef struct {
     TimerScreenLayout layout;
     const BoxBorders* borders;
     const Colors* colors;
+    const ProgressBar* progress_bar;
     const char* category;
     const char* activity;
 } UIConfig;
 
-const BoxBorders* get_borders(BorderType type);
+const BoxBorders* get_borders(BorderTheme type);
 const Colors* get_colors(ColorTheme theme);
-
+const ProgressBar* get_progress_bar(ProgressTheme theme);
 
 void render_ui(
     const UIConfig *config,
