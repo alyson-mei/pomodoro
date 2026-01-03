@@ -10,6 +10,23 @@
 
 // Rendering 
 
+static inline void render_margin_lines(
+    const TimerScreenState *state,
+    const char *border_color,
+    int line_count
+) {
+    for (int i = 0; i < line_count; i++) {
+        box_render_line(
+            "",
+            state->borders->mid,
+            state->screen_layout->width,
+            border_color,
+            state->screen_layout->padding_horizontal,
+            0
+        );
+    }
+}
+
 
 void timer_screen_minimal_render(void);
 
@@ -26,24 +43,19 @@ void timer_screen_balanced_render(
     fflush(stdout);    fflush(stdout);
 
     // Header: top border, margin, header text, margin, lower border
-    box_render_line(            //Top border
-        "",
-        state->borders->top,
-        state->screen_layout->width,
+    box_render_line(            // Top border 
+        "", 
+        state->borders->top, 
+        state->screen_layout->width, 
         view->border_color,
-        state->screen_layout->padding_horizontal,
+        state->screen_layout->padding_horizontal, 
         1
     );
-    for (int i = 0; i < state->screen_layout->padding_header_vert; i ++) {
-        box_render_line(        // Margin
-            "",
-            state->borders->mid, 
-            state->screen_layout->width, 
-            view->border_color, 
-            state->screen_layout->padding_horizontal,
-            0
-        );
-    }
+    render_margin_lines(        // Margin 
+        state, 
+        view->border_color, 
+        state->screen_layout->padding_header_vert
+    ); 
     box_render_line(            // Header text
         view->header, 
         state->borders->mid, 
@@ -52,36 +64,26 @@ void timer_screen_balanced_render(
         state->screen_layout->padding_horizontal, 
         0
     );
-    for (int i = 0; i < state->screen_layout->padding_header_vert; i ++) {
-        box_render_line(        // Margin
-            "",
-            state->borders->mid, 
-            state->screen_layout->width, 
-            view->border_color,
-            state->screen_layout->padding_horizontal, 
-            0
-        );
-    }
-    box_render_line(            // Lower border
+    render_margin_lines(        // Margin 
+        state, 
+        view->border_color, 
+        state->screen_layout->padding_header_vert
+    ); 
+    box_render_line(            // Mid-bottom border 
         "", 
         state->borders->mid_bottom, 
         state->screen_layout->width, 
-        view->border_color, 
+        view->border_color,
         state->screen_layout->padding_horizontal, 
         1
     );
 
     // Time: margin, time, progress bar
-    for (int i = 0; i < state->screen_layout->margin_after_header; i ++) {
-        box_render_line(        // Margin
-            "",
-            state->borders->mid, 
-            state->screen_layout->width, 
-            view->border_color, 
-            state->screen_layout->padding_horizontal, 
-            0
-        );
-    }
+    render_margin_lines(        // Margin 
+        state, 
+        view->border_color, 
+        state->screen_layout->margin_after_header
+    ); 
     box_render_line(            // Time
         view->time, 
         state->borders->mid, 
@@ -102,16 +104,11 @@ void timer_screen_balanced_render(
     }
 
     // Category: margin, category, activity
-    for (int i = 0; i < state->screen_layout->margin_after_time; i++) {
-        box_render_line(
-            "",
-            state->borders->mid, 
-            state->screen_layout->width, 
-            view->border_color, 
-            state->screen_layout->padding_horizontal, 
-            0
-        );
-    }
+    render_margin_lines(        // Margin 
+        state, 
+        view->border_color, 
+        state->screen_layout->margin_after_time
+    ); 
     box_render_line(            // Category with comma
         view->category, 
         state->borders->mid, 
@@ -130,16 +127,11 @@ void timer_screen_balanced_render(
     );
 
     // Controls: margin, controls
-    for (int i = 0; i < state->screen_layout->margin_after_category; i ++) {
-        box_render_line(        // Margin
-            "",
-            state->borders->mid, 
-            state->screen_layout->width, 
-            view->border_color, 
-            state->screen_layout->padding_horizontal, 
-            0
-        );
-    }
+    render_margin_lines(        // Margin 
+        state, 
+        view->border_color, 
+        state->screen_layout->margin_after_category
+    ); 
     box_render_line(            // Controls
         view->controls, 
         state->borders->mid, 
@@ -150,16 +142,11 @@ void timer_screen_balanced_render(
     );
     
     // Margin and bottom border
-    for (int i = 0; i < state->screen_layout->margin_after_controls; i ++) {
-        box_render_line(        // Margin                    
-            "",
-            state->borders->mid, 
-            state->screen_layout->width, 
-            view->border_color, 
-            state->screen_layout->padding_horizontal, 
-            0
-        );
-    }
+    render_margin_lines(        // Margin 
+        state, 
+        view->border_color, 
+        state->screen_layout->margin_after_controls
+    ); 
     box_render_line(            // Bottom border
         "", 
         state->borders->bottom, 

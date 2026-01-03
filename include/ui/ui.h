@@ -72,10 +72,10 @@ typedef struct
     char header[HEADER_SIZE];
     char time[TIME_SIZE];
     char progress_bar[PROGRESS_BAR_SIZE];
-    char category[COMMON_STR_SIZE];
-    char activity[COMMON_STR_SIZE];
-    char controls[CONTROLS_SIZE];
-    char border_color[COLOR_SIZE];
+    const char *category;
+    const char *activity;
+    const char *controls;
+    const char *border_color;
 } TimerScreenView;
 
 typedef struct {
@@ -83,18 +83,27 @@ typedef struct {
     const Timer *timer;
     const BoxBorders *borders;
     const Colors *colors;
+    const char *category;
+    const char *activity;
     int current_iteration;
     int total_iterations;
 } TimerScreenState;
 
+typedef struct {
+    TimerScreenLayout layout;
+    const BoxBorders* borders;
+    const Colors* colors;
+    const char* category;
+    const char* activity;
+} UIConfig;
 
 const BoxBorders* get_borders(BorderType type);
 const Colors* get_colors(ColorTheme theme);
 
+
 void render_ui(
+    const UIConfig *config,
     const Timer *timer,
-    const ColorTheme color_theme,
-    const BorderType border_type,
     int current_iteration,
     int total_iterations
 );
@@ -114,21 +123,16 @@ void timer_screen_balanced_render(
 
 void set_header(
     char *header,
+    size_t header_size,
     TimerMode mode, 
     TimerWorkMode work_mode,
     TimerState state,
     int current_iteration,
     int total_iterations
 );
-void set_controls(
-    char* controls,
-    TimerState state
-);
-void set_color(
-    char* color,
-    const Colors *colors,
-    TimerState state
-);
+
+const char* get_controls_text(TimerState state);
+const char* get_state_color(const Colors *colors, TimerState state);
 
 int calculate_progress(const Timer *t);
 char* repeat_string(
@@ -161,5 +165,10 @@ void box_render_line(
     int padding_horizontal,
     int paint_content         // 0 = don't color content, 1 = color content
 );
+
+
+//
+
+
 
 #endif

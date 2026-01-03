@@ -109,7 +109,7 @@ TimerDisplay get_time_display(const Timer *timer) {
     TimerDisplay time_display;
     int64_t ms = display_ms < 0 ? 0 : display_ms;
 
-    time_display.centiseconds = (ms / 10) % 100;
+    time_display.deciseconds  = (ms / 100) % 10;
     time_display.seconds      = (ms / 1000) % 60;
     time_display.minutes      = ms / (1000 * 60);
 

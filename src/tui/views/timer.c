@@ -11,6 +11,7 @@
 
 void set_header(
     char *header,
+    size_t header_size,
     TimerMode mode, 
     TimerWorkMode work_mode,
     TimerState state,
@@ -18,81 +19,50 @@ void set_header(
     int total_iterations
 ) {
     const char *mode_str = (mode == MODE_COUNTDOWN) ? TIMER_COUNTDOWN : TIMER_STOPWATCH;
+    const char *work_str;
     
     if (state == STATE_CANCELLED) {
-        if (mode == MODE_COUNTDOWN && total_iterations >= 2) {
-            sprintf(header, "%s: %s (%d / %d)", mode_str, TIMER_CANCELLED, current_iteration, total_iterations);
-        } else {
-            sprintf(header, "%s: %s", mode_str, TIMER_CANCELLED);
-        }
-    }
-
-    else {
-        const char *work_str;
+        work_str = TIMER_CANCELLED;
+    } else {
         switch (work_mode) {
             case MODE_WORK:       work_str = TIMER_WORK; break;
             case MODE_BREAK:      work_str = TIMER_BREAK; break;
             case MODE_LONG_BREAK: work_str = TIMER_LONG_BREAK; break;
-            default:              work_str = NULL; break;
+            default:              work_str = mode_str; // Fallback
+                                  snprintf(header, header_size, "%s", mode_str);
+                                  return;
         }
-        
-        if (work_str) {
-            if (total_iterations >= 2 && mode == MODE_COUNTDOWN) {
-                sprintf(header, "%s: %s (%d / %d)", mode_str, work_str, current_iteration, total_iterations);
-            } else {
-                sprintf(header, "%s: %s", mode_str, work_str);
-            }
-        } else {
-            sprintf(header, "%s", mode_str);
-        }
+    }
+    
+    // Single formatting logic
+    if (mode == MODE_COUNTDOWN && total_iterations >= 2) {
+        snprintf(header, header_size, "%s: %s (%d / %d)", 
+                 mode_str, work_str, current_iteration, total_iterations);
+    } else {
+        snprintf(header, header_size, "%s: %s", mode_str, work_str);
     }
 }
 
-void set_controls(
-    char* controls,
-    TimerState state
-) {
+const char* get_controls_text(TimerState state) {
     switch (state) {
-        case STATE_ACTIVE:          
-            sprintf(controls, CONTROLS_ACTIVE);
-            break;
-        case STATE_PAUSED:          
-            sprintf(controls, CONTROLS_PAUSED);
-            break;
-        case STATE_COMPLETED:       
-            sprintf(controls, CONTROLS_COMPLETED);
-            break;
-        case STATE_CANCELLED:
-            sprintf(controls, CONTROLS_CANCELLED);
-            break;
-        default:
-            sprintf(controls, " ");
-            break;
+        case STATE_ACTIVE:    return CONTROLS_ACTIVE;
+        case STATE_PAUSED:    return CONTROLS_PAUSED;
+        case STATE_COMPLETED: return CONTROLS_COMPLETED;
+        case STATE_CANCELLED: return CONTROLS_CANCELLED;
+        default:              return " ";
     }
 }
 
-void set_color(
-    char* color,
-    const Colors *colors,
-    TimerState state) {
+const char* get_state_color(const Colors *colors, TimerState state) {
     switch (state) {
-        case STATE_ACTIVE:          
-            sprintf(color, colors->active);
-            break;
-        case STATE_PAUSED:          
-            sprintf(color, colors->paused);
-            break;
-        case STATE_COMPLETED:       
-            sprintf(color, colors->completed);
-            break;
-        case STATE_CANCELLED:
-            sprintf(color, colors->cancelled);
-            break;
-        default:
-            sprintf(color, colors->active);
-            break;
+        case STATE_ACTIVE:    return colors->active;
+        case STATE_PAUSED:    return colors->paused;
+        case STATE_COMPLETED: return colors->completed;
+        case STATE_CANCELLED: return colors->cancelled;
+        default:              return colors->active;
     }
 }
+
 
 // Helper functions
 
@@ -115,45 +85,38 @@ int calculate_progress(const Timer *t) {
 }
 
 
-void format_progress_bar(
-    char *buf,
-    size_t buf_size,
-    int percent,
-    int width
-) {
-
+void format_progress_bar(char *buf, size_t buf_size, int percent, int width) {
     if (percent < 0) percent = 0;
     if (percent > 100) percent = 100;
 
-    int filled = (percent * width) / 100;
-
-    char *p = buf;
-    if (buf_size < 5) {
+    const size_t min_size = 5 + 6 + 1;
+    if (buf_size < min_size) {
         buf[0] = '\0';
         return;
     }
 
-    memset(p, ' ', 5);  // Add padding spaces
+    int filled = (percent * width) / 100;
+    memset(buf, ' ', 5);
+    char *p = buf + 5;
+    size_t remaining = buf_size - 5 - 6;
 
-    p += 5;
-    size_t remaining = buf_size - 1; // leave space for '\0'
+    // Cache UTF-8 lengths (called in tight loop)
+    static const size_t filled_len = 3;  // strlen("█")
+    static const size_t empty_len = 3;   // strlen("░")
 
     for (int i = 0; i < width && remaining > 0; ++i) {
-        const char *ch = (i < filled) ? "█" : "░";
-        size_t len = strlen(ch);
-
-        if (len > remaining)
-            break;
-
-        memcpy(p, ch, len);
-        p += len;
-        remaining -= len;
+        if (i < filled) {
+            if (filled_len > remaining) break;
+            memcpy(p, "█", filled_len);
+            p += filled_len;
+            remaining -= filled_len;
+        } else {
+            if (empty_len > remaining) break;
+            memcpy(p, "░", empty_len);
+            p += empty_len;
+            remaining -= empty_len;
+        }
     }
 
-    *p = '\0';
-
-    char buf_percent[BUF_PERCENT_SIZE];
-    snprintf(buf_percent, sizeof buf_percent, " %3d%%", percent);
-    strcat(p, buf_percent);
-    
+    snprintf(p, buf_size - (p - buf), " %3d%%", percent);
 }

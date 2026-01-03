@@ -26,7 +26,6 @@
 //      - Sessions logic (outer loop)
 //      - Improve the STOPWATCH mode desging
 // - Long term:
-//      - Performance improvement (hoisting)
 //      - Category and activity should be on different lines
 //      - Edit entries
 // Thoughts: 
@@ -38,6 +37,7 @@
 
 
 int main(void) {
+
     setvbuf(stdout, NULL, _IONBF, 0);
     
     ensure_data_dir();
@@ -48,6 +48,26 @@ int main(void) {
         printf("Failed to load config\n");
         return 1;
     }
+
+    char category_with_comma[COMMON_STR_SIZE];
+    snprintf(category_with_comma, sizeof(category_with_comma), "%s,", settings->activity.category);
+
+    UIConfig ui_config = {
+        .layout = {
+            .width = WIDTH,
+            .padding_horizontal = PADDING_HORIZONTAL,
+            .padding_header_vert = PADDING_HEADER_VERT,
+            .margin_after_header = MARGIN_AFTER_HEADER,
+            .margin_after_time = MARGIN_AFTER_TIME,
+            .margin_after_category = MARGIN_AFTER_CATEGORY,
+            .margin_after_controls = MARGIN_AFTER_CONTROLS
+        },
+        .borders = get_borders(settings->ui.border_type),
+        .colors = get_colors(settings->ui.color_theme),
+        .category = category_with_comma,
+        .activity = settings->activity.activity
+    };
+
     
     struct termios old_tio;
     setup_terminal(&old_tio);
@@ -80,7 +100,7 @@ int main(void) {
 
         Timer* timer = create_timer(
             duration,
-            MODE_STOPWATCH,
+            MODE_COUNTDOWN,
             work_mode,
             settings->activity.category,
             settings->activity.activity
@@ -119,13 +139,7 @@ int main(void) {
                         save_temp_entry(&entry);
                     }
                     
-                    render_ui(
-                        timer, 
-                        settings->ui.color_theme,
-                        settings->ui.border_type,
-                        cycle, 
-                        settings->countdown.num_cycles
-                    );
+                    render_ui(&ui_config, timer, cycle, settings->countdown.num_cycles);
                     
                     free(timer);
                     
@@ -153,23 +167,11 @@ int main(void) {
             
             is_finished_timer(timer);
             
-            render_ui(
-                timer, 
-                settings->ui.color_theme,
-                settings->ui.border_type,
-                cycle, 
-                settings->countdown.num_cycles
-            );
-            usleep(50000);
+            render_ui(&ui_config, timer, cycle, settings->countdown.num_cycles);
+            usleep(100000);
         }
 
-        render_ui(
-            timer, 
-            settings->ui.color_theme,
-            settings->ui.border_type,
-            cycle, 
-            settings->countdown.num_cycles
-        );
+        render_ui(&ui_config, timer, cycle, settings->countdown.num_cycles);
 
         // Update entry with final state BEFORE saving
         set_entry_elapsed_completed(&entry, timer);

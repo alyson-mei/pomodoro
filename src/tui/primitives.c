@@ -51,48 +51,51 @@ void box_render_line(
     int width,
     const char* color,
     int padding_horizontal,
-    int paint_content         // 0 = don't color content, 1 = color content
+    int paint_content
 ) {
-    
-    bool special_case = strcmp(border->left_char, "-") == 0 && strcmp(border->right_char, "-") == 0;
+    bool special_case = strcmp(border->left_char, "-") == 0 && 
+                       strcmp(border->right_char, "-") == 0;
 
-    // Print left border in color
     if (!special_case)
-    printf("%s%s%s", color, border->left_char, UI_COLOR_RESET);
-    else printf(" ");
+        printf("%s%s%s", color, border->left_char, UI_COLOR_RESET);
+    else 
+        printf(" ");
     
-    // Truncate string if too long
-    char truncated[COMMON_STR_SIZE];
     int str_len = strlen(str);
+    const char *display_str = str;
+    char truncated[COMMON_STR_SIZE];
     
     if (str_len > width) {
-        // Truncate and add "..."
-        int max_len = width - padding_horizontal; // Leave room for "..."
+        int max_len = width - padding_horizontal;
         if (max_len < 0) max_len = 0;
         snprintf(truncated, sizeof(truncated), "%.*s...", max_len, str);
-        str = truncated;
-        str_len = strlen(str);
+        display_str = truncated;
+        str_len = strlen(truncated);  // Only call strlen once on truncated
     }
     
-    // Calculate padding
     int left_pad = (width - str_len) / 2;
     int right_pad = width - str_len - left_pad;
     
-    // Print middle (with or without color)
-    if (paint_content) {
+    if (paint_content)
         printf("%s", color);
+    
+    // Cache mid_char length
+    size_t mid_len = strlen(border->mid_char);
+    for (int i = 0; i < left_pad; i++) {
+        fwrite(border->mid_char, 1, mid_len, stdout);  // Faster than printf
     }
     
-    for (int i = 0; i < left_pad; i++) printf("%s", border->mid_char);
-    printf("%s", str);
-    for (int i = 0; i < right_pad; i++) printf("%s", border->mid_char);
+    printf("%s", display_str);
     
-    if (paint_content) {
+    for (int i = 0; i < right_pad; i++) {
+        fwrite(border->mid_char, 1, mid_len, stdout);
+    }
+    
+    if (paint_content)
         printf("%s", UI_COLOR_RESET);
-    }
     
-    // Print right border in color
     if (!special_case)
-    printf("%s%s%s\n", color, border->right_char, UI_COLOR_RESET);
-    else printf(" \n");
+        printf("%s%s%s\n", color, border->right_char, UI_COLOR_RESET);
+    else 
+        printf(" \n");
 }

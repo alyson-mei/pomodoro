@@ -28,7 +28,7 @@ typedef enum {
 typedef struct {
     int minutes;
     int seconds;
-    int centiseconds;
+    int deciseconds;
 } TimerDisplay;
 
 typedef struct {
