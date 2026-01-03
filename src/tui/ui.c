@@ -12,7 +12,6 @@ void timer_screen_build_view(
     TimerScreenState *state,
     TimerScreenView *view
 ) {
-    
     TimerDisplay td = get_time_display(state->timer);
     snprintf(
         view->time,
@@ -28,7 +27,8 @@ void timer_screen_build_view(
         view->progress_bar,
         sizeof view->progress_bar,
         percent,
-        state->screen_layout->width / 2
+        state->screen_layout->width / 2,
+        state->progress_bar  // ← Pass it here
     );
 
     view->category = state->category;
@@ -59,6 +59,7 @@ void render_ui(
         .screen_layout = &config->layout,
         .borders = config->borders,
         .colors = config->colors,
+        .progress_bar = config->progress_bar, 
         .timer = timer,
         .category = config->category,
         .activity = config->activity,
@@ -68,19 +69,19 @@ void render_ui(
 
     TimerScreenView view;
     timer_screen_build_view(&state, &view);
-    switch (config->layout_theme)
-    {
-    case LT_THEME_MINIMAL:
-        timer_screen_minimal_render(&state, &view);
-        break;
-    case LT_THEME_SMALL:
-        timer_screen_small_render(&state, &view);
-        break;
-    case LT_THEME_STANDARD:
-        timer_screen_balanced_render(&state, &view);
-        break;
-    default:
-        timer_screen_minimal_render(&state, &view);
-        break;
+    
+    switch (config->layout_theme) {
+        case LT_THEME_MINIMAL:
+            timer_screen_minimal_render(&state, &view);
+            break;
+        case LT_THEME_SMALL:
+            timer_screen_small_render(&state, &view);
+            break;
+        case LT_THEME_STANDARD:
+            timer_screen_balanced_render(&state, &view);
+            break;
+        default:
+            timer_screen_minimal_render(&state, &view);
+            break;
     }
 }

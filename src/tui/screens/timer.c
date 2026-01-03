@@ -166,10 +166,10 @@ void timer_screen_balanced_render(
         0
     );
     if (state->timer->timer_mode == MODE_COUNTDOWN) {
-        box_render_line(                     // Progress bar
+        box_render_line(
             view->progress_bar, 
             state->borders->mid, 
-            state->screen_layout->width * 2, // Specifics of rendering progress bar symbols
+            state->screen_layout->width * state->progress_bar->char_width,  // ← Use char_width
             view->border_color, 
             state->screen_layout->padding_horizontal, 
             0

@@ -70,10 +70,11 @@ typedef enum {
 } ProgressTheme;
 
 typedef struct {
-    const char *left_char;
-    const char *mid_char_off;
-    const char *mid_char_on;
-    const char *right_char;
+    const char* left_char;
+    const char* mid_char_off;
+    const char* mid_char_on;
+    const char* right_char;
+    int char_width;  // ← Add: 1 for ASCII, 2 for UTF-8 blocks
 } ProgressBar;
 
 // Layout, State and View
@@ -106,11 +107,13 @@ typedef struct {
     const Timer *timer;
     const BoxBorders *borders;
     const Colors *colors;
+    const ProgressBar *progress_bar; 
     const char *category;
     const char *activity;
     int current_iteration;
     int total_iterations;
 } TimerScreenState;
+
 
 typedef struct {
     TimerScreenLayout layout;
@@ -174,10 +177,11 @@ char* repeat_string(
 );
 
 void format_progress_bar(
-    char *buf,
-    size_t buf_size,
-    int percent,
-    int width
+    char *buf, 
+    size_t buf_size, 
+    int percent, 
+    int width,
+    const ProgressBar *pb 
 );
 
 

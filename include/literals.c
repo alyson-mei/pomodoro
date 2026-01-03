@@ -25,20 +25,25 @@ static const Border double_borders[4] = {
 static const ProgressBar minimal_bar = {
     .left_char = "",
     .mid_char_off = ".",
-    .mid_char_on = "#" ,
-    .right_char = ""
+    .mid_char_on = "#",
+    .right_char = "",
+    .char_width = 1  // ← ASCII characters
 };
+
 static const ProgressBar simple_bar = {
     .left_char = "[",
     .mid_char_off = " ",
-    .mid_char_on = "=" ,
-    .right_char = "]"
+    .mid_char_on = "=",
+    .right_char = "]",
+    .char_width = 1  // ← ASCII characters
 };
+
 static const ProgressBar standard_bar = {
     .left_char = "",
     .mid_char_off = "░",
-    .mid_char_on = "█" ,
-    .right_char = ""
+    .mid_char_on = "█",
+    .right_char = "",
+    .char_width = 2  // ← UTF-8 blocks need double width
 };
 
 const BoxBorders* get_borders(BorderTheme type) {

@@ -85,7 +85,13 @@ int calculate_progress(const Timer *t) {
 }
 
 
-void format_progress_bar(char *buf, size_t buf_size, int percent, int width) {
+void format_progress_bar(
+    char *buf, 
+    size_t buf_size, 
+    int percent, 
+    int width,
+    const ProgressBar *pb 
+) {
     if (percent < 0) percent = 0;
     if (percent > 100) percent = 100;
 
@@ -100,23 +106,45 @@ void format_progress_bar(char *buf, size_t buf_size, int percent, int width) {
     char *p = buf + 5;
     size_t remaining = buf_size - 5 - 6;
 
-    // Cache UTF-8 lengths (called in tight loop)
-    static const size_t filled_len = 3;  // strlen("█")
-    static const size_t empty_len = 3;   // strlen("░")
+    // Cache character lengths
+    size_t left_len = strlen(pb->left_char);
+    size_t on_len = strlen(pb->mid_char_on);
+    size_t off_len = strlen(pb->mid_char_off);
+    size_t right_len = strlen(pb->right_char);
 
-    for (int i = 0; i < width && remaining > 0; ++i) {
-        if (i < filled) {
-            if (filled_len > remaining) break;
-            memcpy(p, "█", filled_len);
-            p += filled_len;
-            remaining -= filled_len;
-        } else {
-            if (empty_len > remaining) break;
-            memcpy(p, "░", empty_len);
-            p += empty_len;
-            remaining -= empty_len;
-        }
+    // Left bracket
+    if (left_len > 0 && left_len <= remaining) {
+        memcpy(p, pb->left_char, left_len);
+        p += left_len;
+        remaining -= left_len;
     }
 
+    // Progress bar
+    for (int i = 0; i < width && remaining > 0; ++i) {
+        const char *ch;
+        size_t ch_len;
+        
+        if (i < filled) {
+            ch = pb->mid_char_on;
+            ch_len = on_len;
+        } else {
+            ch = pb->mid_char_off;
+            ch_len = off_len;
+        }
+        
+        if (ch_len > remaining) break;
+        memcpy(p, ch, ch_len);
+        p += ch_len;
+        remaining -= ch_len;
+    }
+
+    // Right bracket
+    if (right_len > 0 && right_len <= remaining) {
+        memcpy(p, pb->right_char, right_len);
+        p += right_len;
+        remaining -= right_len;
+    }
+
+    // Percentage
     snprintf(p, buf_size - (p - buf), " %3d%%", percent);
 }
