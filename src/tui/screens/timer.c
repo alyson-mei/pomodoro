@@ -28,8 +28,81 @@ static inline void render_margin_lines(
 }
 
 
-void timer_screen_minimal_render(void);
+void timer_screen_small_render(
+    TimerScreenState *state,
+    TimerScreenView *view
+) {
+    printf("\033[2J\033[H\033[?25l");
+    fflush(stdout);
+    
+    // Top border
+    printf("%s", view->border_color);
+    for (int i = 0; i < state->screen_layout->width; i++) {
+        printf("━");
+    }
+    printf("%s\n", UI_COLOR_RESET);
+    
+    // Header and time line
+    if (state->timer->timer_mode == MODE_COUNTDOWN && state->total_iterations >= 2) {
+        printf(" %s %d/%d  %s  %s\n",
+               state->timer->timer_work_mode == MODE_WORK ? "WORK" :
+               state->timer->timer_work_mode == MODE_BREAK ? "BREAK" : "LONG BREAK",
+               state->current_iteration,
+               state->total_iterations,
+               view->time,
+               view->progress_bar);
+    } else {
+        printf(" %s  %s  %s\n",
+               state->timer->timer_work_mode == MODE_WORK ? "WORK" :
+               state->timer->timer_work_mode == MODE_BREAK ? "BREAK" : "LONG BREAK",
+               view->time,
+               view->progress_bar);
+    }
+    
+    // Category and activity
+    printf(" %s %s\n", view->category, view->activity);
+    
+    // Controls
+    printf(" %s\n", view->controls);
+    
+    // Bottom border
+    printf("%s", view->border_color);
+    for (int i = 0; i < state->screen_layout->width; i++) {
+        printf("━");
+    }
+    printf("%s\n", UI_COLOR_RESET);
+}
 
+void timer_screen_minimal_render(
+    TimerScreenState *state,
+    TimerScreenView *view
+) {
+    printf("\033[2J\033[H\033[?25l");
+    fflush(stdout);
+    
+    // Single line format
+    if (state->timer->timer_mode == MODE_COUNTDOWN && state->total_iterations >= 2) {
+        printf("%s %d/%d | %s │ %s %s │ %s%s\n",
+               state->timer->timer_work_mode == MODE_WORK ? "WORK" :
+               state->timer->timer_work_mode == MODE_BREAK ? "BREAK" : "LONG BREAK",
+               state->current_iteration,
+               state->total_iterations,
+               view->time,
+               view->category,
+               view->activity,
+               view->controls,
+               UI_COLOR_RESET);
+    } else {
+        printf("%s │ %s │ %s %s │ %s%s\n",
+               state->timer->timer_work_mode == MODE_WORK ? "WORK" :
+               state->timer->timer_work_mode == MODE_BREAK ? "BREAK" : "LONG BREAK",
+               view->time,
+               view->category,
+               view->activity,
+               view->controls,
+               UI_COLOR_RESET);
+    }
+}
 
 void timer_screen_balanced_render(
     TimerScreenState *state,

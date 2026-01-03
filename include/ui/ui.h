@@ -116,7 +116,14 @@ void timer_screen_balanced_render(
     TimerScreenState *state,
     TimerScreenView *view
 );
-
+void timer_screen_small_render(
+    TimerScreenState *state,
+    TimerScreenView *view
+);
+void timer_screen_minimal_render(
+    TimerScreenState *state,
+    TimerScreenView *view
+);
 
 // TODO: refactor this later!
 

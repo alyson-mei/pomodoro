@@ -72,5 +72,5 @@ void render_ui(
 
     TimerScreenView view;
     timer_screen_build_view(&state, &view);
-    timer_screen_balanced_render(&state, &view);
+    timer_screen_small_render(&state, &view);
 }
