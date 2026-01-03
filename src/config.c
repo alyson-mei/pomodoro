@@ -86,6 +86,12 @@ static void parse_section(const char *str, const char *section_name,
 }
 
 // Helpers
+static LayoutTheme get_layout_theme(const char *str) {
+    if      (strcmp(str, LT_MINIMAL)   == 0) return LT_THEME_MINIMAL;
+    else if (strcmp(str, LT_SMALL)    == 0)  return LT_THEME_SMALL;
+    else if (strcmp(str, LT_STANDARD)  == 0) return LT_THEME_STANDARD;
+    else                                     return LT_THEME_MINIMAL;
+}
 
 static ColorTheme get_color_theme(const char *str) {
     if      (strcmp(str, CT_MINIMAL)   == 0) return THEME_MINIMAL;
@@ -96,7 +102,7 @@ static ColorTheme get_color_theme(const char *str) {
     else                                     return THEME_MINIMAL;
 }
 
-static BorderTheme get_border_type(const char *str) {
+static BorderTheme get_border_theme(const char *str) {
     if      (strcmp(str, BT_MINIMAL)   == 0) return BORDER_MINIMAL;
     else if (strcmp(str, BT_SINGLE)    == 0) return BORDER_SINGLE;
     else if (strcmp(str, BT_DOUBLE)    == 0) return BORDER_DOUBLE;
@@ -145,10 +151,12 @@ static void handle_countdown(const char *key, const char *value, void *data) {
 static void handle_ui(const char *key, const char *value, void *data) {
     UiSettings *settings = (UiSettings*)data;
     
-    if (strcmp(key, "color_theme") == 0) {
+    if (strcmp(key, "layout_theme") == 0) {
+        settings->layout_theme = get_layout_theme(value);
+    } else if (strcmp(key, "color_theme") == 0) {
         settings->color_theme = get_color_theme(value);
-    } else if (strcmp(key, "borders_type") == 0) {
-        settings->border_theme = get_border_type(value);
+    } else if (strcmp(key, "borders_theme") == 0) {
+        settings->border_theme = get_border_theme(value);
     } else if (strcmp(key, "progress_theme") == 0) {
         settings->progress_theme = get_progress_theme(value);
     }

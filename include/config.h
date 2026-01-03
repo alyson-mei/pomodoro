@@ -22,6 +22,7 @@ typedef struct {
     ColorTheme color_theme;
     BorderTheme border_theme;
     ProgressTheme progress_theme;
+    LayoutTheme layout_theme;
 } UiSettings;
 
 typedef struct {

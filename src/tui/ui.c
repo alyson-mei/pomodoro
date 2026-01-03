@@ -68,5 +68,19 @@ void render_ui(
 
     TimerScreenView view;
     timer_screen_build_view(&state, &view);
-    timer_screen_small_render(&state, &view);
+    switch (config->layout_theme)
+    {
+    case LT_THEME_MINIMAL:
+        timer_screen_minimal_render(&state, &view);
+        break;
+    case LT_THEME_SMALL:
+        timer_screen_small_render(&state, &view);
+        break;
+    case LT_THEME_STANDARD:
+        timer_screen_balanced_render(&state, &view);
+        break;
+    default:
+        timer_screen_minimal_render(&state, &view);
+        break;
+    }
 }

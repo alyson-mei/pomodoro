@@ -16,6 +16,13 @@
 #define CONTROLS_COMPLETED  "[Enter] Continue [Q] Quit" 
 #define CONTROLS_CANCELLED  "     [Enter/Q]   Quit    "
 
+
+// Layout themes
+
+#define LT_MINIMAL    "MINIMAL"
+#define LT_SMALL      "SMALL"  
+#define LT_STANDARD   "STANDARD"
+
 // Color themes
 
 #define CT_MINIMAL    "MINIMAl"

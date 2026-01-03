@@ -15,6 +15,14 @@
 #define MARGIN_AFTER_CATEGORY   3
 #define MARGIN_AFTER_CONTROLS   1
 
+// Layout
+
+typedef enum {
+    LT_THEME_MINIMAL,
+    LT_THEME_SMALL,
+    LT_THEME_STANDARD
+} LayoutTheme;
+
 // Colors
 
 typedef enum {
@@ -106,6 +114,7 @@ typedef struct {
 
 typedef struct {
     TimerScreenLayout layout;
+    const LayoutTheme layout_theme;
     const BoxBorders* borders;
     const Colors* colors;
     const ProgressBar* progress_bar;
