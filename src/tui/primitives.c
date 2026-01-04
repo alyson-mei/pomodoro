@@ -57,7 +57,7 @@ void box_render_line(
                        strcmp(border->right_char, "-") == 0;
 
     if (!special_case)
-        printf("%s%s%s", color, border->left_char, UI_COLOR_RESET);
+        printf("%s%s%s", color, border->left_char, RESET_COLOR);
     else 
         printf(" ");
     
@@ -92,10 +92,10 @@ void box_render_line(
     }
     
     if (paint_content)
-        printf("%s", UI_COLOR_RESET);
+        printf("%s", RESET_COLOR);
     
     if (!special_case)
-        printf("%s%s%s\n", color, border->right_char, UI_COLOR_RESET);
+        printf("%s%s%s\n", color, border->right_char, RESET_COLOR);
     else 
         printf(" \n");
 }

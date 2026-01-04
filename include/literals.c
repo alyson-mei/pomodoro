@@ -2,10 +2,10 @@
 #include "ui/ui.h"
 
 static const Border minimal_borders[4] = {
-    {"-", "-", "-"},
+    {"+", "-", "+"},
     {"|", " ", "|"},
     {"|", "-", "|"},
-    {"-", "-", "-"}
+    {"+", "-", "+"}
 };
 
 static const Border single_borders[4] = {
@@ -79,28 +79,28 @@ const Colors* get_colors(ColorTheme theme) {
             .cancelled = RESET_COLOR
         },
         [THEME_SIMPLE] = {
-            .active    = GREEN,
+            .active    = MAGENTA,
             .paused    = YELLOW,
-            .completed = BLUE,
-            .cancelled = GRAY
+            .completed = GREEN,
+            .cancelled = CYAN
         },
         [THEME_CYBERPUNK] = {
             .active    = NEON_PINK,
-            .paused    = ELECTRIC_BLUE,
-            .completed = SOFT_CYAN,
-            .cancelled = SOFT_PURPLE
+            .paused    = NEON_YELLOW,
+            .completed = NEON_GREEN,
+            .cancelled = NEON_CYAN
         },
         [THEME_FOREST] = {
-            .active    = SOFT_GREEN,
-            .paused    = YELLOW,
-            .completed = CYAN,
-            .cancelled = GRAY
+            .active    = FOREST_GREEN,
+            .paused    = LEAF_YELLOW,
+            .completed = MOSS_GREEN,
+            .cancelled = STREAM_CYAN
         },
         [THEME_SUNSET] = {
-            .active    = SOFT_RED,
-            .paused    = YELLOW,
-            .completed = MAGENTA,
-            .cancelled = GRAY
+            .active    = SUNSET_ORANGE,
+            .paused    = GOLDEN_YELLOW,
+            .completed = SUNSET_TEAL,
+            .cancelled = SEA_BLUE
         }
     };
     return &colors[theme];

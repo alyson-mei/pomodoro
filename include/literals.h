@@ -56,12 +56,25 @@
 #define SOFT_PURPLE   "\x1b[38;5;141m"
 #define SOFT_RED      "\x1b[38;5;203m"
 #define SOFT_GREEN    "\x1b[38;5;114m"
-#define NEON_PINK     "\x1b[38;5;213m"
 #define ELECTRIC_BLUE "\x1b[38;5;81m"
+
+#define NEON_PINK     "\x1b[38;5;213m"
+#define NEON_GREEN    "\x1b[38;5;41m" 
+#define NEON_YELLOW   "\x1b[38;5;220m"
+#define NEON_CYAN     "\x1b[38;5;38m"
+
+#define FOREST_GREEN  "\x1b[38;5;22m"
+#define MOSS_GREEN    "\x1b[38;5;107m"
+#define LEAF_YELLOW   "\x1b[38;5;185m"
+#define STREAM_CYAN   "\x1b[38;5;116m"
+
+#define SUNSET_ORANGE "\x1b[38;5;215m"
+#define GOLDEN_YELLOW "\x1b[38;5;221m"
+#define SUNSET_TEAL   "\x1b[38;5;115m"
+#define SEA_BLUE       "\x1b[38;5;68m"
 
 #define RESET_COLOR   "\x1b[0m"
 
-#define UI_COLOR_RESET "\x1b[0m"
 
 
 #endif
