@@ -28,62 +28,43 @@ static inline void render_margin_lines(
 }
 
 
-#include <stdio.h>
-#include <string.h>
-
-void timer_screen_small_render(TimerScreenState *state, TimerScreenView *view) {
-    // 1. Prepare Content Buffers
-    char line_header[256];
-    char line_body[256];
-    char line_controls[256];
-
-    const char *mode_label = (state->timer->timer_work_mode == MODE_WORK) ? "WORK" :
-                             (state->timer->timer_work_mode == MODE_BREAK) ? "BREAK" : "LONG BREAK";
-
-    // Format Line 1: Header/Time
-    if (state->timer->timer_mode == MODE_COUNTDOWN && state->total_iterations >= 2) {
-        snprintf(line_header, sizeof(line_header), " %s %d/%d  %s  %s",
-                 mode_label, state->current_iteration, state->total_iterations,
-                 view->time, view->progress_bar);
-    } else {
-        snprintf(line_header, sizeof(line_header), " %s  %s  %s",
-                 mode_label, view->time, view->progress_bar);
-    }
-
-    // Format Line 2: Category/Activity
-    snprintf(line_body, sizeof(line_body), " %s %s", view->category, view->activity);
-
-    // Format Line 3: Controls
-    snprintf(line_controls, sizeof(line_controls), " %s", view->controls);
-
-    // 2. Determine Maximum Visible Width
-    // Note: This assumes view strings don't contain invisible ANSI escape codes.
-    int max_w = (int)strlen(line_header);
-    int body_w = (int)strlen(line_body);
-    int ctrl_w = (int)strlen(line_controls);
-
-    if (body_w > max_w) max_w = body_w;
-    if (ctrl_w > max_w) max_w = ctrl_w;
-
-    // 3. Render
-    printf("\033[2J\033[H\033[?25l"); // Clear and hide cursor
-
-    // Top border
-    printf("%s", view->border_color);
-    for (int i = 0; i < max_w; i++) printf("%s", state->borders->top->mid_char);
-    printf("%s\n", RESET_COLOR);
-
-    // Content
-    printf("%s\n", line_header);
-    printf("%s\n", line_body);
-    printf("%s\n", line_controls);
-
-    // Bottom border
-    printf("%s", view->border_color);
-    for (int i = 0; i < max_w; i++) printf("%s", state->borders->top->mid_char);
-    printf("%s\n", RESET_COLOR);
-
+void timer_screen_small_render(
+    TimerScreenState *state,
+    TimerScreenView *view
+) {
+    printf("\033[2J\033[H\033[?25l");
     fflush(stdout);
+    
+    printf("%s", view->border_color);
+    for (int i = 0; i < state->screen_layout->width + 6; i++) {
+        printf(state->borders->top->mid_char);
+    }
+    printf("%s\n", RESET_COLOR);
+    
+    if (state->timer->timer_mode == MODE_COUNTDOWN && state->total_iterations >= 2) {
+        printf(" %s %d/%d  %s  %s\n",
+               state->timer->timer_work_mode == MODE_WORK ? "WORK" :
+               state->timer->timer_work_mode == MODE_BREAK ? "BREAK" : "LONG BREAK",
+               state->current_iteration,
+               state->total_iterations,
+               view->time,
+               view->progress_bar);
+    } else {
+        printf(" %s  %s  %s\n",
+               state->timer->timer_work_mode == MODE_WORK ? "WORK" :
+               state->timer->timer_work_mode == MODE_BREAK ? "BREAK" : "LONG BREAK",
+               view->time,
+               view->progress_bar);
+    }
+    
+    printf(" %s %s\n", view->category, view->activity);
+    printf(" %s\n", view->controls);
+    
+    printf("%s", view->border_color);
+    for (int i = 0; i < state->screen_layout->width + 6; i++) {
+        printf(state->borders->top->mid_char);
+    }
+    printf("%s\n", RESET_COLOR);
 }
 
 void timer_screen_minimal_render(

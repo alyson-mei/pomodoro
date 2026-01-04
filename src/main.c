@@ -38,7 +38,7 @@
 
 int main(void) {
 
-    setvbuf(stdout, NULL, _IONBF, 0);
+    //setvbuf(stdout, NULL, _IONBF, 0);
     
     ensure_data_dir();
     check_crashed_session();
