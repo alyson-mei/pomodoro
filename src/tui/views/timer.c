@@ -47,8 +47,8 @@ const char* get_controls_text(TimerState state) {
     switch (state) {
         case STATE_ACTIVE:    return CONTROLS_ACTIVE;
         case STATE_PAUSED:    return CONTROLS_PAUSED;
-        case STATE_COMPLETED: return CONTROLS_DONE;
-        case STATE_CANCELLED: return CONTROLS_DONE;
+        case STATE_COMPLETED: return CONTROLS_MSG;
+        case STATE_CANCELLED: return CONTROLS_MSG;
         default:              return " ";
     }
 }

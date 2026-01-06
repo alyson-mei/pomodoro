@@ -1,1 +1,5 @@
 uuid,date,time,mode,work_mode,elapsed_seconds,completed,category,activity,message
+7592174781109721082,2026-01-06,12:14,COUNTDOWN,WORK,01:00,1,Coding,Building a cozy Pomodoro app,This is a test message
+7592175099385631760,2026-01-06,12:15,COUNTDOWN,BREAK,01:00,1,Coding,Building a cozy Pomodoro app,The test break
+7592175386974270223,2026-01-06,12:16,COUNTDOWN,WORK,01:00,1,Coding,Building a cozy Pomodoro app,
+7592175937034985695,2026-01-06,12:18,COUNTDOWN,LONG BREAK,02:00,1,Coding,Building a cozy Pomodoro app,

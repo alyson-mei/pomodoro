@@ -2,6 +2,8 @@
 #include <unistd.h> 
 #include <fcntl.h>
 
+struct termios old_tio;
+
 
 // Setup non-blocking input
 

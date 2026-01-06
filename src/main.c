@@ -3,6 +3,7 @@
 #include <stdlib.h>
 #include <stdio.h>
 #include <time.h>
+#include <string.h>
 #include <termios.h>
 #include <fcntl.h>
 #include <sys/stat.h>
@@ -71,7 +72,6 @@ int main(void) {
     };
 
     
-    struct termios old_tio;
     setup_terminal(&old_tio);
 
     char c;
@@ -119,10 +119,10 @@ int main(void) {
                timer->timer_state != STATE_CANCELLED) {
             
             // Check for keyboard input
-            Command cmd = read_command();
+            KeyCommand cmd = read_command();
 
             switch (cmd) {
-                case CMD_TOGGLE_PAUSE:
+                case KCMD_TOGGLE_PAUSE:
                     if (timer->timer_state == STATE_PAUSED) {
                         start_timer(timer);
                     } else if (timer->timer_state == STATE_ACTIVE) {
@@ -130,7 +130,7 @@ int main(void) {
                     }
                     break;
 
-                case CMD_QUIT:
+                case KCMD_QUIT:
                     cancel_timer(timer);
                     
                     // Update entry before saving
@@ -153,7 +153,7 @@ int main(void) {
                     goto cleanup;
                     break;
 
-                case CMD_NONE:
+                case KCMD_NONE:
                 default:
                     break;
             }
@@ -178,6 +178,42 @@ int main(void) {
         // Update entry with final state BEFORE saving
         set_entry_elapsed_completed(&entry, timer);
         
+        // Play sound and wait for input (if not last phase)
+        if (j < settings->countdown.num_cycles * 2) {
+            printf("\a");
+            fflush(stdout);
+            
+            int flags = fcntl(STDIN_FILENO, F_GETFL);
+            fcntl(STDIN_FILENO, F_SETFL, flags & ~O_NONBLOCK);
+            
+            while (1) {
+                KeyCommand cmd = read_command();
+
+                if (cmd == KCMD_CONTINUE) {
+                    break;
+                } 
+                else if (cmd == KCMD_MESSAGE) {
+                    char *msg = prompt_message_input("Add notes for this session:");
+                    if (msg && strlen(msg) > 0) {
+                        if (entry.message) free(entry.message);  // Free old if exists
+                        entry.message = msg;
+                    }
+                    else {
+                        free(msg);  // Free empty message
+                    }
+                    render_ui(&ui_config, timer, cycle, settings->countdown.num_cycles);
+                }
+                else if (cmd == KCMD_QUIT) {
+                    free(timer);
+                    goto cleanup;
+                }
+                // REMOVE THIS LINE - it causes constant redraws
+                // render_ui(&ui_config, timer, cycle, settings->countdown.num_cycles);
+            }
+
+            fcntl(STDIN_FILENO, F_SETFL, flags);
+        }
+        
         // Append to history and remove temp
         if (append_entry(&entry)) {
             remove(TEMP_FILE);
@@ -190,28 +226,7 @@ int main(void) {
         free(entry.activity);
         free(entry.message);
 
-        // Play sound and wait for input (if not last phase)
-        if (j < settings->countdown.num_cycles * 2) {
-            printf("\a");
-            fflush(stdout);
-            
-            int flags = fcntl(STDIN_FILENO, F_GETFL);
-            fcntl(STDIN_FILENO, F_SETFL, flags & ~O_NONBLOCK);
-            
-            while (1) {
-                Command cmd = read_command();
 
-                if (cmd == CMD_CONTINUE) {
-                    break;
-                } else if (cmd == CMD_QUIT) {
-                    free(timer);
-                    goto cleanup;
-                }
-            }
-            
-            fcntl(STDIN_FILENO, F_SETFL, flags);
-        }
-        
         free(timer);
     }
 

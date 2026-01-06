@@ -11,11 +11,11 @@
 #define TIMER_PAUSE      "PAUSE"
 #define TIMER_CANCELLED   "CANCELLED"
 
-#define CONTROLS_ACTIVE     "[Space] Pause    [Q] Quit"
-#define CONTROLS_PAUSED     "[Space] Resume   [Q] Quit"
-#define CONTROLS_DONE       "[Enter] Continue [Q] Quit" 
-#define CONTROLS_SAVE       "  [Enter] Save  [Q] Quit "
-#define CONTROLS_MSG    "[Enter] Continue [M] Message [Q] Quit" 
+#define CONTROLS_ACTIVE         "[Space] Pause    [Q] Quit"
+#define CONTROLS_PAUSED         "[Space] Resume   [Q] Quit"
+#define CONTROLS_DONE           "[Enter] Continue [Q] Quit" 
+#define CONTROLS_SAVE           " [Enter] Save   [Q] Quit "
+#define CONTROLS_MSG            "[M] Message [Enter] Continue [Q] Quit" 
 #define CONTROLS_MSG_CANCELLED  "[M] Message [Q] Quit"
 
 

@@ -67,4 +67,11 @@ bool load_temp_entry(HistoryEntry *entry);
 bool append_entry(HistoryEntry *entry);
 void check_crashed_session(void);
 
+
+
+
+char* prompt_message_input(const char *prompt_text);
+//void cleanup_temp_message_file(void);
+
+
 #endif
