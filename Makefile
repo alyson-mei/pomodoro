@@ -8,8 +8,9 @@ CFLAGS = -Wall -Wextra -Iinclude -g
 SRCS = \
 	include/literals.c \
 	src/main.c \
-	src/timer.c \
-	src/config.c \
+	src/core/session.c \
+	src/core/timer.c \
+	src/core/config.c \
 	src/data/history.c \
 	src/data/progress.c \
 	src/data/management.c \
@@ -17,7 +18,8 @@ SRCS = \
 	src/tui/primitives.c \
 	src/tui/screens/timer.c \
 	src/tui/views/timer.c \
-	src/tui/terminal/command.c \
+	src/tui/terminal/key_command.c \
+	src/tui/terminal/cli_command.c \
 	src/tui/terminal/setup.c
 
 # Output executable

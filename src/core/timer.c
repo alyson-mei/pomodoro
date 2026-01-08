@@ -7,8 +7,8 @@
 #include <stdint.h>
 #include <stdbool.h>
 
-#include "../include/timer.h"
-#include "../include/global.h"
+#include "../../include/timer.h"
+#include "../../include/global.h"
 
 int64_t get_current_ms(void) {
     struct timespec tspec;

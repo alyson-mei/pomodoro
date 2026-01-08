@@ -59,4 +59,7 @@ void pause_timer(Timer *timer);
 void cancel_timer(Timer *timer);
 bool is_finished_timer(Timer *timer);
 
+
+
+
 #endif

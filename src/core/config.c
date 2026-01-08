@@ -2,8 +2,8 @@
 #include <stdlib.h>
 #include <string.h>
 #include <ctype.h>
-#include "../include/global.h"
-#include "../include/config.h"
+#include "../../include/global.h"
+#include "../../include/config.h"
 
 // Trim leading and trailing whitespace
 static char* trim(char *str) {

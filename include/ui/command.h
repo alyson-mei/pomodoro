@@ -1,7 +1,9 @@
 #ifndef COMMAND_H
+#define COMMAND_H
 
 #include <stdbool.h>
 
+// Keyboard commands during timer execution
 typedef enum {
     KCMD_NONE,
     KCMD_TOGGLE_PAUSE,
@@ -10,28 +12,15 @@ typedef enum {
     KCMD_MESSAGE
 } KeyCommand;
 
+// CLI commands - no parameters
 typedef enum {
-    TCMD_DEFAULT,
-    TCMD_POMODORO,
+    TCMD_COUNTDOWN,
     TCMD_STOPWATCH,
     TCMD_EXPORT,
-    TCMD_HELP,
     TCMD_INVALID
 } CliCommand;
 
-typedef struct {
-    CliCommand command;
-
-    int work_minutes;
-    int break_minutes;
-    int cycles;
-
-    const char *category;
-    const char *activity;
-} CliArgs;
-
-bool parse_cli(int argc, char **argv, CliArgs *out);
-
+CliCommand parse_cli_command(int argc, char **argv);
 KeyCommand read_command(void);
 
 #endif
