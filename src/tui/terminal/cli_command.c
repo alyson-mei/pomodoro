@@ -4,7 +4,6 @@
 
 bool parse_cli_command(int argc, char **argv, CliArgs *args) {
     memset(args, 0, sizeof(*args));
-    args->format = EXPORT_CSV; // default
     
     // No arguments = invalid (not interactive mode)
     if (argc < 2) {
@@ -21,30 +20,28 @@ bool parse_cli_command(int argc, char **argv, CliArgs *args) {
         args->command = TCMD_STOPWATCH;
     }
     else if (!strcmp(cmd, "export")) {
-        args->command = TCMD_EXPORT;
-    }
-    else if (!strcmp(cmd, "stats")) {
-        args->command = TCMD_STATS;
+        // Need second argument: --history or --stats
+        if (argc < 3) {
+            fprintf(stderr, "export requires --history or --stats\n");
+            args->command = TCMD_INVALID;
+            return false;
+        }
+        
+        if (!strcmp(argv[2], "--history")) {
+            args->command = TCMD_EXPORT_HISTORY;
+        }
+        else if (!strcmp(argv[2], "--stats")) {
+            args->command = TCMD_EXPORT_STATS;
+        }
+        else {
+            fprintf(stderr, "Unknown export type: %s (use --history or --stats)\n", argv[2]);
+            args->command = TCMD_INVALID;
+            return false;
+        }
     }
     else {
         args->command = TCMD_INVALID;
         return false;
-    }
-
-    // Parse format flag for export/stats commands
-    if (args->command == TCMD_EXPORT || args->command == TCMD_STATS) {
-        if (argc >= 3) {
-            if (!strcmp(argv[2], "--yaml") || !strcmp(argv[2], "-y")) {
-                args->format = EXPORT_YAML;
-            }
-            else if (!strcmp(argv[2], "--csv") || !strcmp(argv[2], "-c")) {
-                args->format = EXPORT_CSV;
-            }
-            else {
-                fprintf(stderr, "Unknown format: %s (use --yaml or --csv)\n", argv[2]);
-                return false;
-            }
-        }
     }
 
     return true;

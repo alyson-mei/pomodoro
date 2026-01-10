@@ -24,7 +24,7 @@ SRCS = \
 	src/tui/terminal/setup.c
 
 # Output executable
-TARGET = timer
+TARGET = cpomo
 
 .PHONY: all clean rebuild
 

@@ -36,27 +36,32 @@ int main(int argc, char **argv) {
 
     CliArgs args;
     if (!parse_cli_command(argc, argv, &args)) {
-        // No command or invalid - run interactive countdown
-        run_timer_session(settings, MODE_COUNTDOWN);
-        free_config(settings);
-        return 0;
+        if (argc == 1) {
+            // No arguments - run interactive countdown
+            run_timer_session(settings, MODE_COUNTDOWN);
+            free_config(settings);
+            return 0;
+        } else {
+            // Invalid command - show error and exit
+            fprintf(stderr, "Invalid command. Usage: cpomo [countdown|stopwatch|export --history|export --stats]\n");
+            free_config(settings);
+            return 1;
+        }
     }
 
     int result = 0;
     
     switch (args.command) {
-        case TCMD_EXPORT: {
-            const char *output = args.format == EXPORT_YAML ? "history.csv" : "history.csv";
-            if (!export_entries_csv("data/entries.dat", output)) {
+        case TCMD_EXPORT_HISTORY:
+            if (!export_entries_csv("data/entries.dat", "history.csv")) {
                 fprintf(stderr, "Export failed\n");
                 result = 1;
             } else {
-                printf("Exported entries to %s\n", output);
+                printf("Exported history to history.csv\n");
             }
             break;
-        }
         
-        case TCMD_STATS: {
+        case TCMD_EXPORT_STATS: {
             StatsData stats;
             if (!build_stats_from_entries("data/entries.dat", &stats)) {
                 fprintf(stderr, "Failed to build stats\n");
@@ -64,16 +69,11 @@ int main(int argc, char **argv) {
                 break;
             }
             
-            const char *output = args.format == EXPORT_YAML ? "stats.yaml" : "stats.csv";
-            bool success = args.format == EXPORT_YAML ? 
-                export_stats_yaml(&stats, output) : 
-                export_stats_csv(&stats, output);
-            
-            if (!success) {
+            if (!export_stats_yaml(&stats, "stats.yaml")) {
                 fprintf(stderr, "Failed to export stats\n");
                 result = 1;
             } else {
-                printf("Exported stats to %s\n", output);
+                printf("Exported stats to stats.yaml\n");
             }
             break;
         }

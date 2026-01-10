@@ -16,19 +16,13 @@ typedef enum {
 typedef enum {
     TCMD_COUNTDOWN,
     TCMD_STOPWATCH,
-    TCMD_EXPORT,
-    TCMD_STATS,
+    TCMD_EXPORT_HISTORY,
+    TCMD_EXPORT_STATS,
     TCMD_INVALID
 } CliCommand;
 
-typedef enum {
-    EXPORT_CSV,
-    EXPORT_YAML
-} ExportFormat;
-
 typedef struct {
     CliCommand command;
-    ExportFormat format;
 } CliArgs;
 
 bool parse_cli_command(int argc, char **argv, CliArgs *args);
