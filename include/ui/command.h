@@ -12,15 +12,26 @@ typedef enum {
     KCMD_MESSAGE
 } KeyCommand;
 
-// CLI commands - no parameters
+// CLI commands
 typedef enum {
     TCMD_COUNTDOWN,
     TCMD_STOPWATCH,
     TCMD_EXPORT,
+    TCMD_STATS,
     TCMD_INVALID
 } CliCommand;
 
-CliCommand parse_cli_command(int argc, char **argv);
+typedef enum {
+    EXPORT_CSV,
+    EXPORT_YAML
+} ExportFormat;
+
+typedef struct {
+    CliCommand command;
+    ExportFormat format;
+} CliArgs;
+
+bool parse_cli_command(int argc, char **argv, CliArgs *args);
 KeyCommand read_command(void);
 
 #endif

@@ -14,6 +14,7 @@ SRCS = \
 	src/data/history.c \
 	src/data/progress.c \
 	src/data/management.c \
+	src/data/stats.c \
 	src/tui/ui.c \
 	src/tui/primitives.c \
 	src/tui/screens/timer.c \
